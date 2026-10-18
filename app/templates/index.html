@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>ShopProof — Know before you buy</title>
+  <meta name="description" content="Verify product identity and compare publicly visible marketplace offers with Gemini.">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <header class="nav shell">
+    <a class="brand" href="/" aria-label="ShopProof home">
+      <span class="brand-mark">S</span>
+      <span>ShopProof</span>
+    </a>
+    <span class="live-pill"><i></i> Grounded by Google Search</span>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div class="eyebrow">AI SHOPPING VERIFICATION</div>
+      <h1>Same product.<br><span>Better proof.</span></h1>
+      <p class="lead">Turn a screenshot, product name or link into an evidence-backed comparison across Singapore stores.</p>
+
+      <form id="analyze-form" class="search-card">
+        <label class="input-label" for="query">What are you considering?</label>
+        <div class="query-row">
+          <textarea id="query" name="query" rows="2" placeholder="Paste a product link or type the exact model…"></textarea>
+          <label class="upload-button" for="image" title="Add screenshot">
+            <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+          </label>
+        </div>
+        <div id="file-chip" class="file-chip hidden"></div>
+        <button class="primary-button" type="submit">
+          <span>Find verified alternatives</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        </button>
+        <div class="examples">
+          <span>Try:</span>
+          <button type="button" data-sample="Sony WH-1000XM5 Black Singapore">Sony XM5</button>
+          <button type="button" data-sample="Nintendo Switch OLED White HEG-001">Switch OLED</button>
+        </div>
+      </form>
+
+      <div class="trust-row">
+        <div><b>01</b><span>Identify exact variant</span></div>
+        <div><b>02</b><span>Search public listings</span></div>
+        <div><b>03</b><span>Explain every match</span></div>
+      </div>
+    </section>
+
+    <section id="loading" class="shell loading-panel hidden" aria-live="polite">
+      <div class="scanner"><div></div></div>
+      <div>
+        <h2>Checking the evidence</h2>
+        <p id="loading-step">Reading the product identity…</p>
+      </div>
+    </section>
+
+    <section id="results" class="shell results hidden" aria-live="polite">
+      <div id="mode-banner" class="mode-banner"></div>
+      <div class="result-heading">
+        <div>
+          <div class="eyebrow">PRODUCT FINGERPRINT</div>
+          <h2 id="product-name"></h2>
+        </div>
+        <div id="original-price" class="original-price"></div>
+      </div>
+      <div id="fingerprint" class="fingerprint"></div>
+
+      <div class="offers-heading">
+        <div>
+          <div class="eyebrow">VERIFIED ALTERNATIVES</div>
+          <h2>Compare with confidence</h2>
+        </div>
+        <span id="offer-count"></span>
+      </div>
+      <div id="offers" class="offers"></div>
+      <details id="sources-wrap" class="sources hidden">
+        <summary>Grounding sources</summary>
+        <ul id="sources"></ul>
+      </details>
+    </section>
+
+    <section id="error" class="shell error-panel hidden" role="alert">
+      <strong>We could not complete that check.</strong>
+      <p id="error-message"></p>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <p>ShopProof compares publicly indexed information. Always verify final price, stock, shipping and voucher eligibility before buying.</p>
+    <span>Built for AI Builder Cup 2026</span>
+  </footer>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
+

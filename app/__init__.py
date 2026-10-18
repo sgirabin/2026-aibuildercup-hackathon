@@ -1,0 +1,2 @@
+"""ShopProof application package."""
+
