@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 verification_agent = KiasuCheckShoppingVerificationAgent()
 
-app = FastAPI(title="KiasuCheck", version="0.6.2")
+app = FastAPI(title="KiasuCheck", version="0.6.3")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

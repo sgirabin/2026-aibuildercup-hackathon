@@ -105,6 +105,18 @@ class KiasuCheckShoppingVerificationAgent:
         if "verify_product_identity" not in tools_used:
             tools_used.extend(["verify_product_identity", "compare_supported_prices"])
         ranked = rank_candidates(fingerprint, all_candidates)
+        ranked = [candidate for candidate in ranked if candidate.match_type in selected]
+        if "same_shop_product" in selected:
+            ranked = [
+                candidate
+                for candidate in ranked
+                if candidate.match_type != "same_shop_product" or (
+                    fingerprint.source_seller
+                    and candidate.seller
+                    and candidate.seller_match_score is not None
+                    and candidate.seller_match_score >= 70
+                )
+            ]
         rejected = sum(candidate.verdict == "Variant mismatch" for candidate in ranked)
         steps.append(
             AgentStep(

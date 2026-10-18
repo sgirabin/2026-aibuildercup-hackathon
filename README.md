@@ -98,7 +98,7 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
 | `KIASUCHECK_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
 | `KIASUCHECK_MAX_AGENT_ITERATIONS` | `1` | Grounded search cycles; keep at one for interactive demo speed |
-| `KIASUCHECK_VERSION` | `0.6.2` on deploy | Product version exposed by the health endpoint |
+| `KIASUCHECK_VERSION` | `0.6.3` on deploy | Product version exposed by the health endpoint |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations
@@ -107,6 +107,7 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 - Indexed price, stock, shipping, and voucher rules can be stale or personalized.
 - Seller similarity is a clue, not legal proof that two storefronts share an owner.
 - Some marketplaces may return sparse evidence or redirect URLs.
+- Results without a resolvable direct product page are excluded; shop homepages and search pages are never presented as product evidence.
 - The prototype is optimized for branded products with model numbers; fashion and unbranded goods are harder.
 
 See [the agent specification](docs/AGENT.md), [architecture notes](docs/ARCHITECTURE.md), [three-minute demo script](docs/DEMO_SCRIPT.md), and [submission copy](docs/SUBMISSION.md).
