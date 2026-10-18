@@ -98,7 +98,7 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
 | `KIASUCHECK_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
 | `KIASUCHECK_MAX_AGENT_ITERATIONS` | `1` | Grounded search cycles; keep at one for interactive demo speed |
-| `KIASUCHECK_VERSION` | `0.6.1` on deploy | Product version exposed by the health endpoint |
+| `KIASUCHECK_VERSION` | `0.6.2` on deploy | Product version exposed by the health endpoint |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations
