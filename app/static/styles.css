@@ -74,6 +74,7 @@ textarea::placeholder { color: #5e728c; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .results { padding-bottom: 80px; }
+.secondary-button { margin-top:24px;padding:12px 18px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:800;cursor:pointer; }
 .mode-banner { margin-bottom: 28px; padding: 12px 14px; color: #d8e5f5; background: rgba(255,181,93,.1); border: 1px solid rgba(255,181,93,.24); border-radius: 10px; font-size: 12px; line-height: 1.5; }
 .mode-banner.live { background: rgba(70,231,214,.08); border-color: rgba(70,231,214,.2); }
 .agent-trace { margin: 0 0 32px; padding: 0 18px; background: rgba(14,29,48,.92); border: 1px solid rgba(70,231,214,.28); border-radius: 16px; }
