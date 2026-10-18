@@ -2,6 +2,7 @@ const DEFAULT_API = 'https://shopproof-133701402785.asia-southeast1.run.app';
 const supportedHosts = ['shopee.sg', 'lazada.sg', 'shop.tiktok.com'];
 const allPlatforms = ['Shopee', 'Lazada', 'TikTok Shop'];
 let page = null;
+let progressTimer = null;
 
 const $ = selector => document.querySelector(selector);
 const show = selector => $(selector).classList.remove('hidden');
@@ -77,6 +78,13 @@ async function init() {
     $('#objective-shop').closest('label').title = 'Seller was not detected on this page; results may be limited.';
   }
   show('#product');
+
+  const { lastAnalysis } = await chrome.storage.local.get('lastAnalysis');
+  if (lastAnalysis?.pageUrl === page.url && lastAnalysis?.data) {
+    render(lastAnalysis.data, apiBase);
+    hide('#product');
+    show('#results');
+  }
 }
 
 $('#settings-button').addEventListener('click', () => $('#settings').classList.toggle('hidden'));
@@ -95,6 +103,20 @@ async function runAnalysis() {
 
   hide('#product'); hide('#results'); hide('#error'); show('#loading');
   $('#loading-title').textContent = 'Comparing across platforms';
+  const stages = [
+    'Reading the exact product and variant',
+    'Searching public listings on the other platforms',
+    'Verifying model, seller and price evidence',
+    'Preparing the comparison'
+  ];
+  const started = Date.now();
+  let stage = 0;
+  $('#loading-detail').textContent = `${stages[stage]} · 0s`;
+  progressTimer = setInterval(() => {
+    const elapsed = Math.round((Date.now() - started) / 1000);
+    stage = Math.min(Math.floor(elapsed / 20), stages.length - 1);
+    $('#loading-detail').textContent = `${stages[stage]} · ${elapsed}s elapsed`;
+  }, 1000);
   try {
     const apiBase = await configuredApi();
     const response = await chrome.runtime.sendMessage({
@@ -105,12 +127,19 @@ async function runAnalysis() {
       objectives
     });
     if (!response.ok) throw new Error(response.error);
+    await chrome.storage.local.set({
+      lastAnalysis:{ pageUrl:page.url, data:response.data, savedAt:Date.now() }
+    });
     render(response.data, apiBase);
     show('#results');
   } catch (error) {
     $('#error').textContent = error.message || 'KiasuCheck could not reach the backend.';
     show('#error'); show('#product');
-  } finally { hide('#loading'); }
+  } finally {
+    clearInterval(progressTimer);
+    progressTimer = null;
+    hide('#loading');
+  }
 }
 
 $('#compare-button').addEventListener('click', runAnalysis);
@@ -148,7 +177,12 @@ function render(data, apiBase) {
     <td>${differenceCell(item.visible_price)}</td>
   </tr>`).join('');
   $('#offers').innerHTML = currentRow + (resultRows || `<tr><td colspan="5">No supported indexed listings were found.</td></tr>`);
-  $('#open-app').onclick = () => chrome.tabs.create({ url:`${apiBase}/?q=${encodeURIComponent(page.url)}` });
+  $('#open-app').onclick = () => {
+    const json = JSON.stringify(data);
+    const encoded = btoa(unescape(encodeURIComponent(json)))
+      .replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    chrome.tabs.create({ url:`${apiBase}/#comparison=${encoded}` });
+  };
 }
 
 init().catch(error => { $('#error').textContent = error.message; show('#error'); });

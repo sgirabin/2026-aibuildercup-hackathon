@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from app.models import AgentStep, AgentTrace, Candidate, ProductFingerprint, SearchIntent, Source
 from app.services.gemini import extract_fingerprint, search_candidates
 from app.services.matching import confidence_level, rank_candidates
+from app.config import settings
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,9 @@ class KiasuCheckShoppingVerificationAgent:
 
     name = "KiasuCheck Shopping Verification Agent"
     goal = "Find and verify supported cross-platform offers"
-    max_iterations = 2
+    # One grounded investigation is the production default because a second complete
+    # search can double user-visible latency. It can still be enabled for evaluation.
+    max_iterations = settings.max_agent_iterations
 
     def run(
         self,

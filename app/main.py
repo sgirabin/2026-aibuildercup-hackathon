@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -21,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 verification_agent = KiasuCheckShoppingVerificationAgent()
 
-app = FastAPI(title="KiasuCheck", version="0.5.0")
+app = FastAPI(title="KiasuCheck", version="0.6.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -65,12 +66,16 @@ async def analyze(
     image_bytes: bytes | None = None
     mime_type: str | None = None
     if image:
-        mime_type = image.content_type
-        if mime_type not in ALLOWED_IMAGE_TYPES:
-            raise HTTPException(415, "Use a JPEG, PNG, or WebP screenshot.")
-        image_bytes = await image.read(settings.max_upload_bytes + 1)
-        if len(image_bytes) > settings.max_upload_bytes:
-            raise HTTPException(413, "Image must be 5 MB or smaller.")
+        # Browsers may submit an empty file part even when the user selected no image.
+        # Treat that as no upload so product-name and URL-only checks remain valid.
+        uploaded = await image.read(settings.max_upload_bytes + 1)
+        if uploaded:
+            mime_type = image.content_type
+            if mime_type not in ALLOWED_IMAGE_TYPES:
+                raise HTTPException(415, "Use a JPEG, PNG, or WebP screenshot.")
+            if len(uploaded) > settings.max_upload_bytes:
+                raise HTTPException(413, "Image must be 5 MB or smaller.")
+            image_bytes = uploaded
 
     if force_demo:
         fingerprint, candidates = get_demo(query)
@@ -84,6 +89,8 @@ async def analyze(
         )
 
     try:
+        started = time.perf_counter()
+        logger.info("analysis_started intent=%s objectives=%s", intent, objectives)
         selected_objectives = [item.strip() for item in objectives.split(",") if item.strip()]
         result = verification_agent.run(
             query,
@@ -93,7 +100,7 @@ async def analyze(
             target_marketplace,
             selected_objectives,
         )
-        return AnalysisResponse(
+        response = AnalysisResponse(
             fingerprint=result.fingerprint,
             candidates=result.candidates,
             sources=result.sources,
@@ -106,6 +113,13 @@ async def analyze(
             ),
             agent=result.trace,
         )
+        logger.info(
+            "analysis_completed elapsed_seconds=%.2f candidates=%d iterations=%d",
+            time.perf_counter() - started,
+            len(result.candidates),
+            result.trace.iterations,
+        )
+        return response
     except Exception as exc:
         logger.exception("Live analysis failed")
         if not settings.demo_fallback:

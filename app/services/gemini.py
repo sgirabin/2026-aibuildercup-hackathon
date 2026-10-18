@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from typing import Any, Literal
 from urllib.parse import urlparse
 
@@ -78,6 +79,7 @@ Create 1-3 highly specific Singapore web search terms, prioritizing exact model 
     if image_bytes and mime_type:
         contents.append(types.Part.from_bytes(data=image_bytes, mime_type=mime_type))
 
+    started = time.perf_counter()
     with _client() as client:
         response = client.models.generate_content(
             model=settings.model,
@@ -86,8 +88,10 @@ Create 1-3 highly specific Singapore web search terms, prioritizing exact model 
                 response_mime_type="application/json",
                 response_schema=ProductFingerprint,
                 temperature=0.1,
+                max_output_tokens=700,
             ),
         )
+    logger.info("gemini_fingerprint elapsed_seconds=%.2f", time.perf_counter() - started)
     fingerprint = response.parsed
     if not isinstance(fingerprint, ProductFingerprint):
         fingerprint = ProductFingerprint.model_validate(_json_payload(response.text))
@@ -189,6 +193,7 @@ promotion if visible, model or variant evidence, and the cited product-page sour
 prices, promotions, sellers, URLs, or unavailable product attributes. If the web evidence is sparse,
 say so plainly. Prefer actual product pages over marketplace home pages.
 """
+    started = time.perf_counter()
     with _client() as client:
         grounded = client.models.generate_content(
             model=settings.model,
@@ -196,8 +201,10 @@ say so plainly. Prefer actual product pages over marketplace home pages.
             config=types.GenerateContentConfig(
                 tools=[types.Tool(google_search=types.GoogleSearch())],
                 temperature=1.0,
+                max_output_tokens=1800,
             ),
         )
+        logger.info("gemini_grounded_search elapsed_seconds=%.2f", time.perf_counter() - started)
         sources = _extract_sources(grounded)
         if not sources:
             return [], []
@@ -229,6 +236,7 @@ Grounded report:
 Numbered source catalogue:
 {source_catalogue}
 """
+    started = time.perf_counter()
     with _client() as client:
         structured = client.models.generate_content(
             model=settings.model,
@@ -237,8 +245,10 @@ Numbered source catalogue:
                 response_mime_type="application/json",
                 response_schema=list[FoundListing],
                 temperature=0.0,
+                max_output_tokens=1800,
             ),
         )
+    logger.info("gemini_structure_results elapsed_seconds=%.2f", time.perf_counter() - started)
     listings = structured.parsed
     if not isinstance(listings, list):
         listings = [FoundListing.model_validate(item) for item in _json_payload(structured.text)]

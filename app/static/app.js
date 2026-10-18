@@ -10,6 +10,16 @@ const submitButton = form.querySelector('button[type="submit"]');
 const initialQuery = new URLSearchParams(location.search).get('q');
 if (initialQuery) queryInput.value = initialQuery;
 
+function decodeSharedComparison() {
+  const marker = '#comparison=';
+  if (!location.hash.startsWith(marker)) return null;
+  try {
+    let encoded = location.hash.slice(marker.length).replaceAll('-', '+').replaceAll('_', '/');
+    encoded += '='.repeat((4 - encoded.length % 4) % 4);
+    return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+  } catch (_) { return null; }
+}
+
 const money = (value, currency = 'SGD') => value == null ? 'Price unavailable' :
   new Intl.NumberFormat('en-SG', { style: 'currency', currency }).format(value);
 
@@ -114,9 +124,17 @@ form.addEventListener('submit', async event => {
 
   try {
     const payload = new FormData(form);
+    if (!imageInput.files.length || !imageInput.files[0]?.size) payload.delete('image');
     const response = await fetch('/api/analyze', { method: 'POST', body: payload });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || 'Unexpected response');
+    const raw = await response.text();
+    let data;
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch (_) {
+      throw new Error(/upstream|timeout|deadline/i.test(raw)
+        ? 'The live marketplace search timed out. Please retry with a more exact product name or model.'
+        : `KiasuCheck received an invalid response from the backend (HTTP ${response.status}).`);
+    }
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Unexpected response');
     render(data);
     results.classList.remove('hidden');
     results.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -129,4 +147,11 @@ form.addEventListener('submit', async event => {
     submitButton.disabled = false;
   }
 });
+
+const sharedComparison = decodeSharedComparison();
+if (sharedComparison) {
+  render(sharedComparison);
+  results.classList.remove('hidden');
+  setTimeout(() => results.scrollIntoView({ behavior:'smooth', block:'start' }), 0);
+}
 

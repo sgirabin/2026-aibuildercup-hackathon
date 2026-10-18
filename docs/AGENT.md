@@ -43,7 +43,7 @@ Evidence confidence is labelled **High** at 80–100, **Medium** at 60–79, and
 - Search only the requested target marketplaces.
 - Accept URLs only from the grounding source catalogue and recognized marketplace domains.
 - Never invent prices, promotions, sellers, URLs, or product attributes.
-- Stop after evidence is sufficient or after two investigations.
+- Stop after evidence is sufficient. The interactive deployment uses one investigation for speed; an optional second investigation can be enabled for offline evaluation.
 - Separate exact products, same-shop products, and similar alternatives.
 - Show uncertainty and public-index freshness warnings.
 - Keep the purchase decision with the shopper.

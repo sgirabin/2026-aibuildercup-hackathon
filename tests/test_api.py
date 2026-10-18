@@ -34,3 +34,27 @@ def test_rejects_empty_input() -> None:
     response = client.post("/api/analyze", data={"query": ""})
     assert response.status_code == 400
 
+
+def test_text_only_input_does_not_require_image(monkeypatch) -> None:
+    class Result:
+        fingerprint = __import__("app.models", fromlist=["ProductFingerprint"]).ProductFingerprint(
+            product_name="New Moon Konjac Noodle"
+        )
+        candidates = []
+        sources = []
+        trace = __import__("app.models", fromlist=["AgentTrace"]).AgentTrace(
+            status="insufficient_evidence",
+            iterations=1,
+            tools_used=[],
+            evidence_confidence_score=20,
+            evidence_confidence_level="Low",
+            steps=[],
+        )
+
+    monkeypatch.setattr("app.main.verification_agent.run", lambda *_args, **_kwargs: Result())
+    response = client.post(
+        "/api/analyze",
+        data={"query": "New Moon Low Calorie Konjac Noodle 270g"},
+    )
+    assert response.status_code == 200
+
