@@ -40,6 +40,9 @@ class Candidate(BaseModel):
     seller_match_score: int | None = None
     verdict: Literal["Strong match", "Possible match", "Variant mismatch"] = "Possible match"
     savings: float | None = None
+    match_type: Literal["same_shop_product", "same_product", "similar_product"] = (
+        "same_product"
+    )
 
 
 class Source(BaseModel):
@@ -55,5 +58,5 @@ class AnalysisResponse(BaseModel):
     warning: str | None = None
 
 
-SearchIntent = Literal["exact", "similar", "seller"]
+SearchIntent = Literal["exact", "similar", "seller", "multi"]
 

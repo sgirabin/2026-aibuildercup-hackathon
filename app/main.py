@@ -52,6 +52,7 @@ async def analyze(
     force_demo: bool = Form(default=False),
     intent: SearchIntent = Form(default="exact"),
     target_marketplace: str | None = Form(default=None),
+    objectives: str = Form(default=""),
 ) -> AnalysisResponse:
     query = query.strip()
     if not query and not image:
@@ -78,7 +79,10 @@ async def analyze(
 
     try:
         fingerprint = extract_fingerprint(query, image_bytes, mime_type)
-        candidates, sources = search_candidates(fingerprint, intent, target_marketplace)
+        selected_objectives = [item.strip() for item in objectives.split(",") if item.strip()]
+        candidates, sources = search_candidates(
+            fingerprint, intent, target_marketplace, selected_objectives
+        )
         return AnalysisResponse(
             fingerprint=fingerprint,
             candidates=rank_candidates(fingerprint, candidates),
