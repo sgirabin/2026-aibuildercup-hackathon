@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "KiasuCheck — Check before you buy",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Compare the product you are viewing with publicly indexed marketplace offers.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [

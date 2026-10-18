@@ -76,3 +76,41 @@ def test_agent_stops_after_first_sufficient_investigation(monkeypatch) -> None:
     assert result.trace.iterations == 1
     assert result.trace.evidence_confidence_score >= 60
     assert "google_search_grounding" in result.trace.tools_used
+
+
+def test_same_shop_option_rejects_different_seller(monkeypatch) -> None:
+    candidate = supported_candidate()
+    candidate.match_type = "same_shop_product"
+    candidate.seller = "Unrelated Marketplace Seller"
+    monkeypatch.setattr(
+        "app.agent.kiasucheck_agent.extract_fingerprint",
+        lambda *_args, **_kwargs: fingerprint(),
+    )
+    monkeypatch.setattr(
+        "app.agent.kiasucheck_agent.search_candidates",
+        lambda *_args, **_kwargs: ([candidate], []),
+    )
+
+    result = KiasuCheckShoppingVerificationAgent().run(
+        "Sony headphones", None, None, "seller", None, ["same_shop_product"]
+    )
+    assert result.candidates == []
+    assert result.trace.status == "insufficient_evidence"
+
+
+def test_selected_option_excludes_other_result_types(monkeypatch) -> None:
+    candidate = supported_candidate()
+    candidate.match_type = "similar_product"
+    monkeypatch.setattr(
+        "app.agent.kiasucheck_agent.extract_fingerprint",
+        lambda *_args, **_kwargs: fingerprint(),
+    )
+    monkeypatch.setattr(
+        "app.agent.kiasucheck_agent.search_candidates",
+        lambda *_args, **_kwargs: ([candidate], []),
+    )
+
+    result = KiasuCheckShoppingVerificationAgent().run(
+        "Sony headphones", None, None, "exact", None, ["same_product"]
+    )
+    assert result.candidates == []
