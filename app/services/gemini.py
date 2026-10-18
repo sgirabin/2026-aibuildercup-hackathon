@@ -17,6 +17,10 @@ from app.services.product_input import parse_product_input
 
 logger = logging.getLogger(__name__)
 
+
+class IncompleteModelResponseError(RuntimeError):
+    """Gemini returned structured output that could not be decoded completely."""
+
 ALLOWED_MARKETPLACES = {
     "shopee": "Shopee",
     "lazada": "Lazada",
@@ -48,7 +52,12 @@ class FoundListing(BaseModel):
 
 def _json_payload(text: str) -> Any:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.I | re.S)
-    return json.loads(cleaned)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        raise IncompleteModelResponseError(
+            "Gemini returned incomplete structured output."
+        ) from exc
 
 
 def _client() -> genai.Client:
@@ -88,7 +97,6 @@ Create 1-3 highly specific Singapore web search terms, prioritizing exact model 
                 response_mime_type="application/json",
                 response_schema=ProductFingerprint,
                 temperature=0.1,
-                max_output_tokens=700,
             ),
         )
     logger.info("gemini_fingerprint elapsed_seconds=%.2f", time.perf_counter() - started)
@@ -201,7 +209,6 @@ say so plainly. Prefer actual product pages over marketplace home pages.
             config=types.GenerateContentConfig(
                 tools=[types.Tool(google_search=types.GoogleSearch())],
                 temperature=1.0,
-                max_output_tokens=1800,
             ),
         )
         logger.info("gemini_grounded_search elapsed_seconds=%.2f", time.perf_counter() - started)
@@ -236,22 +243,39 @@ Grounded report:
 Numbered source catalogue:
 {source_catalogue}
 """
-    started = time.perf_counter()
-    with _client() as client:
-        structured = client.models.generate_content(
-            model=settings.model,
-            contents=structure_prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=list[FoundListing],
-                temperature=0.0,
-                max_output_tokens=1800,
-            ),
+    listings = None
+    for attempt in range(1, 3):
+        started = time.perf_counter()
+        with _client() as client:
+            structured = client.models.generate_content(
+                model=settings.model,
+                contents=structure_prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=list[FoundListing],
+                    temperature=0.0,
+                ),
+            )
+        logger.info(
+            "gemini_structure_results elapsed_seconds=%.2f attempt=%d",
+            time.perf_counter() - started,
+            attempt,
         )
-    logger.info("gemini_structure_results elapsed_seconds=%.2f", time.perf_counter() - started)
-    listings = structured.parsed
-    if not isinstance(listings, list):
-        listings = [FoundListing.model_validate(item) for item in _json_payload(structured.text)]
+        try:
+            listings = structured.parsed
+            if not isinstance(listings, list):
+                listings = [
+                    FoundListing.model_validate(item)
+                    for item in _json_payload(structured.text or "")
+                ]
+            break
+        except IncompleteModelResponseError:
+            if attempt == 2:
+                raise
+            logger.warning("gemini_structure_results incomplete; retrying once")
+
+    if listings is None:
+        raise IncompleteModelResponseError("Gemini returned no structured listings.")
 
     allowed_urls = {str(source.url) for source in sources}
     candidates: list[Candidate] = []
