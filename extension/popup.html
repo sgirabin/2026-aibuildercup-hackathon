@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ShopProof</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="mark">S</div>
+    <div><strong>ShopProof</strong><span>Verify before you buy</span></div>
+    <button id="settings-button" title="Backend settings">⚙</button>
+  </header>
+
+  <main>
+    <section id="settings" class="settings hidden">
+      <label for="api-base">ShopProof API URL</label>
+      <div class="settings-row">
+        <input id="api-base" type="url" placeholder="https://shopproof-….run.app">
+        <button id="save-settings">Save</button>
+      </div>
+      <small>Use <code>http://localhost:8080</code> for local development.</small>
+    </section>
+
+    <section id="unsupported" class="notice hidden">
+      Open a product page on Shopee, Lazada or TikTok Shop.
+    </section>
+
+    <section id="product" class="product hidden">
+      <span id="marketplace" class="eyebrow"></span>
+      <h1 id="title"></h1>
+      <div class="observed">
+        <span>Observed on this page</span>
+        <strong id="page-price">Price not detected</strong>
+      </div>
+      <button id="check-button" class="primary">Check other offers <span>→</span></button>
+      <label class="demo-toggle"><input id="demo-mode" type="checkbox"> Use reliable demo data</label>
+    </section>
+
+    <section id="loading" class="loading hidden">
+      <i></i><div><strong>Checking exact identity</strong><span>Searching public listings…</span></div>
+    </section>
+
+    <section id="results" class="results hidden">
+      <div id="mode" class="mode"></div>
+      <div id="fingerprint" class="fingerprint"></div>
+      <div id="offers" class="offers"></div>
+      <button id="open-app" class="secondary">Open full comparison</button>
+    </section>
+
+    <section id="error" class="notice error hidden"></section>
+  </main>
+  <footer>Publicly indexed prices can change. Verify before purchase.</footer>
+  <script src="popup.js"></script>
+</body>
+</html>
+

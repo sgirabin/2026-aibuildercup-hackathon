@@ -16,6 +16,87 @@ Price comparison often fails at product identity. A cheaper result may be anothe
 - Manifest V3 Chrome extension for checking the product page currently being viewed
 - Explicit demo-data switch/fallback so a three-minute presentation does not depend on marketplace indexing
 
-## Status
+## Architecture
 
-The complete MVP is being prepared on the `codex/shopproof-mvp` branch.
+```mermaid
+flowchart TD
+    A["Mobile web or Chrome extension"] --> B["FastAPI on Cloud Run"]
+    B --> C["Gemini product fingerprint"]
+    B --> D["Google Search grounding"]
+    C --> E["Deterministic match scorer"]
+    D --> E
+    E --> F["Evidence-backed alternatives"]
+```
+
+The deterministic scorer gives model-number and variant conflicts precedence over a low price. Product and seller similarity remain separate signals.
+
+## Run locally
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements-dev.txt
+export GOOGLE_CLOUD_PROJECT=gen-lang-client-0509152597
+export GOOGLE_CLOUD_LOCATION=global
+export GOOGLE_GENAI_USE_ENTERPRISE=True
+gcloud auth application-default login
+uvicorn app.main:app --reload --port 8080
+```
+
+Open <http://localhost:8080>. Without usable Google credentials, live requests automatically switch to clearly labelled demo data. You can explicitly request the stable demonstration path from the Chrome extension.
+
+## Chrome extension
+
+1. Open `chrome://extensions` and enable **Developer mode**.
+2. Select **Load unpacked** and choose the `extension` directory.
+3. Open a Shopee SG, Lazada SG, or TikTok Shop product page.
+4. Click ShopProof in the Chrome toolbar.
+5. Set the API URL through the gear icon (`http://localhost:8080` locally or the Cloud Run URL).
+
+## Tests
+
+```bash
+pytest
+```
+
+The unit tests cover exact model matching, decisive mismatches, price savings, ranking, API health, demo results, and input validation.
+
+## Deploy to Cloud Run
+
+The deployment target defaults to:
+
+- Project: `gen-lang-client-0509152597`
+- Service: `shopproof`
+- Region: `asia-southeast1`
+- Gemini location: `global`
+- Gemini model: `gemini-3.5-flash`
+
+After authenticating `gcloud`, run:
+
+```bash
+./deploy.sh
+```
+
+The Cloud Run runtime service account needs `roles/aiplatform.user`. The deploying identity also needs permission to build images, deploy Cloud Run services, and act as the runtime service account.
+
+## Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GOOGLE_CLOUD_PROJECT` | `gen-lang-client-0509152597` | Vertex AI project |
+| `GOOGLE_CLOUD_LOCATION` | `global` | Gemini API location |
+| `GOOGLE_GENAI_USE_ENTERPRISE` | `true` on Cloud Run | Use the Vertex/enterprise endpoint |
+| `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
+| `SHOPPROOF_DEMO_FALLBACK` | `true` | Use labelled demo results if live search fails |
+| `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
+
+## Honest limitations
+
+- Search sees only pages available to Google's public index.
+- Indexed price, stock, shipping, and voucher rules can be stale or personalized.
+- Seller similarity is a clue, not legal proof that two storefronts share an owner.
+- Some marketplaces may return sparse evidence or redirect URLs.
+- The prototype is optimized for branded products with model numbers; fashion and unbranded goods are harder.
+
+See [the architecture notes](docs/ARCHITECTURE.md), [three-minute demo script](docs/DEMO_SCRIPT.md), and [submission copy](docs/SUBMISSION.md).
+

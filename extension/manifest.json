@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ShopProof — Verify before you buy",
+  "version": "0.1.0",
+  "description": "Compare the product you are viewing with publicly indexed marketplace offers.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://shopee.sg/*",
+    "https://*.shopee.sg/*",
+    "https://www.lazada.sg/*",
+    "https://shop.tiktok.com/*",
+    "https://*.run.app/*",
+    "http://localhost:8080/*"
+  ],
+  "action": {
+    "default_title": "Check with ShopProof",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  }
+}
+
