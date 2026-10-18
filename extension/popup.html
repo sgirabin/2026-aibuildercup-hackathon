@@ -34,12 +34,14 @@
         <span>Observed on this page</span>
         <strong id="page-price">Price not detected</strong>
       </div>
-      <div class="actions">
-        <button class="primary action-button" data-intent="exact">Find the same product <span>→</span></button>
-        <button class="action-button" data-intent="similar">Find similar products</button>
-        <button class="action-button" data-intent="seller">Check this seller elsewhere</button>
-        <button class="action-button lazada" data-intent="exact" data-target="Lazada">Check on Lazada</button>
-      </div>
+      <fieldset class="objectives">
+        <legend>What should ShopProof compare?</legend>
+        <label><input id="objective-shop" type="checkbox" value="same_shop_product"><span><b>Same shop + product</b><small>Compare this seller's price elsewhere</small></span></label>
+        <label><input id="objective-product" type="checkbox" value="same_product"><span><b>Same product, any seller</b><small>Find the cheapest exact match</small></span></label>
+        <label><input id="objective-similar" type="checkbox" value="similar_product"><span><b>Similar cheaper products</b><small>Compare alternatives and differences</small></span></label>
+      </fieldset>
+      <div id="target-platforms" class="targets"></div>
+      <button id="compare-button" class="primary">Compare across platforms <span>→</span></button>
       <label class="demo-toggle"><input id="demo-mode" type="checkbox"> Use reliable demo data</label>
     </section>
 
@@ -50,7 +52,10 @@
     <section id="results" class="results hidden">
       <div id="mode" class="mode"></div>
       <div id="fingerprint" class="fingerprint"></div>
-      <div id="offers" class="offers"></div>
+      <div class="table-wrap"><table class="compare-table">
+        <thead><tr><th>Match</th><th>Platform / shop</th><th>Product</th><th>Price</th><th>Difference</th></tr></thead>
+        <tbody id="offers"></tbody>
+      </table></div>
       <button id="open-app" class="secondary">Open full comparison</button>
     </section>
 
