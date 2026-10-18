@@ -6,6 +6,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Settings:
+    app_version: str = os.getenv("SHOPPROOF_VERSION", "dev")
+    git_commit: str = os.getenv("GIT_COMMIT", "unknown")
+    cloud_run_revision: str = os.getenv("K_REVISION", "local")
     project_id: str = os.getenv("GOOGLE_CLOUD_PROJECT", "gen-lang-client-0509152597")
     location: str = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
     model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")

@@ -11,6 +11,9 @@ def test_health() -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.json()["model"]
+    assert response.json()["version"]
+    assert response.json()["git_commit"]
+    assert response.json()["revision"]
 
 
 def test_demo_analysis() -> None:

@@ -40,6 +40,9 @@ async def health() -> dict[str, str]:
     return {
         "status": "ok",
         "service": "shopproof",
+        "version": settings.app_version,
+        "git_commit": settings.git_commit,
+        "revision": settings.cloud_run_revision,
         "model": settings.model,
         "live_fallback": str(settings.demo_fallback).lower(),
     }
