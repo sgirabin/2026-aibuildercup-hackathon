@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
-app = FastAPI(title="ShopProof", version="0.1.0")
+app = FastAPI(title="KiasuCheck", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,7 +39,7 @@ async def index() -> HTMLResponse:
 async def health() -> dict[str, str]:
     return {
         "status": "ok",
-        "service": "shopproof",
+        "service": "kiasucheck",
         "version": settings.app_version,
         "git_commit": settings.git_commit,
         "revision": settings.cloud_run_revision,
@@ -109,7 +109,7 @@ async def analyze(
             candidates=rank_candidates(fingerprint, candidates),
             mode="demo",
             warning=(
-                "Live Vertex AI search failed and ShopProof switched to demonstration data. "
+                "Live Vertex AI search failed and KiasuCheck switched to demonstration data. "
                 f"Diagnostic: {type(exc).__name__}: {str(exc)[:180]}"
             ),
         )

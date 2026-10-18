@@ -1,2 +1,2 @@
-"""ShopProof application package."""
+"""KiasuCheck application package."""
 

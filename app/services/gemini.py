@@ -64,7 +64,7 @@ def extract_fingerprint(
 ) -> ProductFingerprint:
     product_input = parse_product_input(query)
     prompt = f"""
-You are ShopProof, a precise product identity analyst for Singapore shoppers.
+You are KiasuCheck, a precise product identity analyst for Singapore shoppers.
 Extract a normalized product fingerprint from the supplied text, marketplace URL facts,
 page metadata, and optional screenshot. A marketplace URL might not be fetchable, so use
 its decoded slug title and IDs as evidence. Never invent a model number, seller, variant,
@@ -176,7 +176,7 @@ def search_candidates(
         fingerprint, intent, target_marketplaces, selected_objectives
     )
     prompt = f"""
-You are ShopProof's web research agent. {instruction}
+You are KiasuCheck's web research agent. {instruction}
 
 Product fingerprint:
 {identity}

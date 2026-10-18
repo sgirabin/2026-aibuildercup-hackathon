@@ -2,11 +2,11 @@
 
 ## 0:00–0:25 — The trap
 
-“A shopper finds the same-looking product at three different prices. But is it actually the same model, storage, bundle and warranty—or just a cheaper-looking result? Traditional comparison starts with price. ShopProof starts with proof.”
+“A shopper finds the same-looking product at three different prices. But is it actually the same model, storage, bundle and warranty—or just a cheaper-looking result? Traditional comparison starts with price. KiasuCheck starts with evidence.”
 
 ## 0:25–1:00 — Mobile screenshot
 
-1. Open the ShopProof web app in a mobile-sized window.
+1. Open the KiasuCheck web app in a mobile-sized window.
 2. Upload a product screenshot or use **Sony XM5**.
 3. Explain that Gemini reads messy product information and creates a normalized fingerprint.
 4. Point out the exact model, colour, variant, seller and observed source price.
@@ -22,9 +22,9 @@
 ## 1:45–2:20 — Chrome extension moment
 
 1. Open a marketplace product page.
-2. Click the ShopProof extension.
+2. Click the KiasuCheck extension.
 3. Show how it reads the product currently on screen.
-4. Press **Check other offers** and show the top comparisons inside the popup.
+4. Press **KiasuCheck this page** and show the comparison table inside the popup.
 5. Explain that the mobile web app solves adoption while the extension creates a powerful desktop demonstration.
 
 ## 2:20–2:45 — AI architecture
@@ -33,7 +33,7 @@
 
 ## 2:45–3:00 — Close
 
-“ShopProof turns ‘this looks cheaper’ into ‘this is the same product, and here is the evidence.’ Same product. Better proof.”
+“KiasuCheck is an AI trust layer for the internet. Today it checks before you buy. Tomorrow it can check before you trust or share. Check first. Trust smarter.”
 
 ## Demo safety checklist
 
