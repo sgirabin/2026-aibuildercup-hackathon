@@ -87,7 +87,7 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 | `GOOGLE_CLOUD_LOCATION` | `global` | Gemini API location |
 | `GOOGLE_GENAI_USE_ENTERPRISE` | `true` on Cloud Run | Use the Vertex/enterprise endpoint |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
-| `SHOPPROOF_DEMO_FALLBACK` | `true` | Use labelled demo results if live search fails |
+| `SHOPPROOF_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations
