@@ -1,5 +1,5 @@
 const DEFAULT_API = 'https://shopproof-133701402785.asia-southeast1.run.app';
-const RESULT_CACHE_VERSION = '0.6.4';
+const RESULT_CACHE_VERSION = '0.6.5';
 const supportedHosts = ['shopee.sg', 'lazada.sg', 'shop.tiktok.com'];
 const allPlatforms = ['Shopee', 'Lazada', 'TikTok Shop'];
 let page = null;
@@ -151,6 +151,15 @@ async function runAnalysis() {
 }
 
 $('#compare-button').addEventListener('click', runAnalysis);
+
+$('#new-comparison').addEventListener('click', async () => {
+  await chrome.storage.local.remove('lastAnalysis');
+  hide('#results');
+  hide('#error');
+  hide('#loading');
+  show('#product');
+  $('#product').scrollIntoView({ behavior:'smooth', block:'start' });
+});
 
 function differenceCell(price) {
   const current = numericPrice(page.price);
