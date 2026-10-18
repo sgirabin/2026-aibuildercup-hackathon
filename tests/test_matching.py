@@ -29,6 +29,8 @@ def test_exact_model_scores_as_strong_match() -> None:
     assert result.product_match_score >= 80
     assert result.seller_match_score == 100
     assert result.savings == 60
+    assert result.evidence_confidence_score >= 60
+    assert result.evidence_confidence_level in {"High", "Medium"}
 
 
 def test_different_model_is_rejected_even_if_cheaper() -> None:
@@ -44,6 +46,8 @@ def test_different_model_is_rejected_even_if_cheaper() -> None:
     result = score_candidate(source(), candidate)
     assert result.verdict == "Variant mismatch"
     assert result.product_match_score < 55
+    assert result.evidence_confidence_score <= 45
+    assert result.evidence_confidence_level == "Low"
 
 
 def test_ranking_prioritizes_identity_over_low_price() -> None:

@@ -126,6 +126,8 @@ function differenceCell(price) {
 
 function render(data, apiBase) {
   $('#mode').textContent = `${data.mode === 'live' ? 'LIVE GROUNDED RESULTS' : 'DEMONSTRATION MODE'} — ${data.warning || ''}`;
+  const agent = data.agent;
+  $('#agent-summary').innerHTML = agent ? `<div><b>KiasuCheck Agent</b><strong class="${String(agent.evidence_confidence_level).toLowerCase()}">${agent.evidence_confidence_score}% ${escapeHtml(agent.evidence_confidence_level)} evidence confidence</strong></div><small>${agent.iterations} investigation${agent.iterations === 1 ? '' : 's'} · ${agent.tools_used.length} tools · ${agent.steps.length} trace steps</small>` : '';
   $('#fingerprint').innerHTML = `<strong>${escapeHtml(data.fingerprint.product_name)}</strong><span>${escapeHtml([data.fingerprint.brand, data.fingerprint.model_number, data.fingerprint.variant].filter(Boolean).join(' · '))}</span>`;
   const typeLabels = {
     same_shop_product:'Same shop + product',
@@ -139,7 +141,7 @@ function render(data, apiBase) {
     <td><b>${money(numericPrice(page.price))}</b></td><td>Baseline</td>
   </tr>`;
   const resultRows = data.candidates.map(item => `<tr>
-    <td><span class="match-chip">${escapeHtml(typeLabels[item.match_type] || 'Result')}</span><small>${item.product_match_score}% product match</small></td>
+    <td><span class="match-chip">${escapeHtml(typeLabels[item.match_type] || 'Result')}</span><small>${item.product_match_score}% product match</small><small class="${String(item.evidence_confidence_level).toLowerCase()}">${item.evidence_confidence_score}% evidence · ${escapeHtml(item.evidence_confidence_level)}</small></td>
     <td><b>${escapeHtml(item.marketplace)}</b><small>${escapeHtml(item.seller || 'Shop not indexed')}</small></td>
     <td><a href="${escapeHtml(item.url)}" target="_blank">${escapeHtml(item.title)}</a><small>${escapeHtml(item.promotion || '')}</small></td>
     <td><b>${money(item.visible_price, item.currency)}</b></td>

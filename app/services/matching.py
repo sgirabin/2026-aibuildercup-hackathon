@@ -69,7 +69,29 @@ def score_candidate(source: ProductFingerprint, candidate: Candidate) -> Candida
     if source.visible_price is not None and candidate.visible_price is not None:
         candidate.savings = round(source.visible_price - candidate.visible_price, 2)
 
+    evidence_score = 20  # Every live candidate must reference an allowed grounded source URL.
+    evidence_score += 20 if candidate.visible_price is not None else 0
+    evidence_score += min(15, len(candidate.evidence) * 5)
+    evidence_score += 25 if model_match is True else 0
+    evidence_score += 10 if brand_match is True else 0
+    evidence_score += 5 if candidate.seller else 0
+    evidence_score += 5 if candidate.promotion else 0
+    if candidate.verdict == "Variant mismatch":
+        evidence_score = min(evidence_score, 45)
+    candidate.evidence_confidence_score = max(0, min(100, evidence_score))
+    candidate.evidence_confidence_level = confidence_level(
+        candidate.evidence_confidence_score
+    )
+
     return candidate
+
+
+def confidence_level(score: int) -> str:
+    if score >= 80:
+        return "High"
+    if score >= 60:
+        return "Medium"
+    return "Low"
 
 
 def rank_candidates(

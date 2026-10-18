@@ -26,6 +26,8 @@ def test_demo_analysis() -> None:
     assert payload["mode"] == "demo"
     assert len(payload["candidates"]) >= 3
     assert payload["candidates"][0]["verdict"] == "Strong match"
+    assert payload["agent"]["name"] == "KiasuCheck Shopping Verification Agent"
+    assert payload["agent"]["evidence_confidence_level"] in {"High", "Medium", "Low"}
 
 
 def test_rejects_empty_input() -> None:

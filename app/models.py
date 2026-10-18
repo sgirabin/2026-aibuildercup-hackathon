@@ -37,6 +37,8 @@ class Candidate(BaseModel):
     bundle: str | None = None
     evidence: list[str] = Field(default_factory=list)
     product_match_score: int = 0
+    evidence_confidence_score: int = 0
+    evidence_confidence_level: Literal["High", "Medium", "Low"] = "Low"
     seller_match_score: int | None = None
     verdict: Literal["Strong match", "Possible match", "Variant mismatch"] = "Possible match"
     savings: float | None = None
@@ -50,12 +52,30 @@ class Source(BaseModel):
     url: str
 
 
+class AgentStep(BaseModel):
+    stage: Literal["observe", "plan", "search", "evaluate", "verify", "recommend"]
+    summary: str
+    tool: str | None = None
+
+
+class AgentTrace(BaseModel):
+    name: str = "KiasuCheck Shopping Verification Agent"
+    goal: str = "Find and verify supported cross-platform offers"
+    status: Literal["completed", "insufficient_evidence"]
+    iterations: int
+    tools_used: list[str] = Field(default_factory=list)
+    evidence_confidence_score: int
+    evidence_confidence_level: Literal["High", "Medium", "Low"]
+    steps: list[AgentStep] = Field(default_factory=list)
+
+
 class AnalysisResponse(BaseModel):
     fingerprint: ProductFingerprint
     candidates: list[Candidate]
     sources: list[Source] = Field(default_factory=list)
     mode: Literal["live", "demo"]
     warning: str | None = None
+    agent: AgentTrace
 
 
 SearchIntent = Literal["exact", "similar", "seller", "multi"]

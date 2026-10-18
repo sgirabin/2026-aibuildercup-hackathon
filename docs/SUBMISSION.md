@@ -25,7 +25,7 @@ KiasuCheck is an AI trust layer whose first capability is a mobile-first shoppin
 
 ## Agentic behaviour
 
-KiasuCheck observes an unstructured product, plans targeted searches from normalized identity, gathers evidence across sites, checks conflicts, ranks alternatives and returns recommendations with uncertainty. The shopper—not the system—makes the purchasing decision.
+The KiasuCheck Shopping Verification Agent observes an unstructured product, plans targeted cross-platform searches, calls Google Search grounding, evaluates evidence sufficiency, and refines the query once when needed. Deterministic tools then reject identity conflicts, score evidence confidence, and rank supported alternatives. The shopper—not the agent—makes the purchasing decision.
 
 ## Innovation
 
