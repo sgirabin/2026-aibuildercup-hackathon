@@ -23,6 +23,7 @@ h1 { display:-webkit-box;margin:7px 0 14px;overflow:hidden;font-size:18px;line-h
 .primary,.secondary { width:100%;margin-top:12px;padding:11px 12px;border:0;border-radius:9px;font-weight:800;cursor:pointer; }
 .primary { display:flex;justify-content:space-between;color:var(--bg);background:var(--lime); }
 .secondary { color:var(--ink);background:transparent;border:1px solid var(--line); }
+.result-actions { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
 .objectives { display:grid;gap:7px;margin:12px 0 0;padding:0;border:0; }
 .objectives legend { margin-bottom:7px;color:var(--muted);font-size:10px;font-weight:700; }
 .objectives label { display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;cursor:pointer; }
