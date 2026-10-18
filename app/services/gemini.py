@@ -4,9 +4,11 @@ import json
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Literal
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
 
+import httpx
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -30,6 +32,56 @@ ALLOWED_MARKETPLACES = {
     "courts": "COURTS",
     "challenger": "Challenger",
 }
+
+MARKETPLACE_HOSTS = {
+    "Shopee": ("shopee.sg",),
+    "Lazada": ("lazada.sg",),
+    "TikTok Shop": ("tiktok.com",),
+    "Amazon SG": ("amazon.sg",),
+    "COURTS": ("courts.com.sg",),
+    "Challenger": ("challenger.sg",),
+}
+
+
+def _host_matches(url: str, marketplace: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return any(host == allowed or host.endswith(f".{allowed}") for allowed in MARKETPLACE_HOSTS.get(marketplace, ()))
+
+
+def _marketplace_search_url(marketplace: str, title: str) -> str:
+    query = quote_plus(title)
+    return {
+        "Shopee": f"https://shopee.sg/search?keyword={query}",
+        "Lazada": f"https://www.lazada.sg/catalog/?q={query}",
+        "TikTok Shop": f"https://www.tiktok.com/search?q={query}",
+        "Amazon SG": f"https://www.amazon.sg/s?k={query}",
+        "COURTS": f"https://www.courts.com.sg/catalogsearch/result/?q={query}",
+        "Challenger": f"https://www.challenger.sg/search?q={query}",
+    }.get(marketplace, "https://www.google.com/search?q=" + query)
+
+
+def _resolve_listing_url(listing: "FoundListing") -> str:
+    """Turn a temporary grounding redirect into a durable marketplace URL.
+
+    A marketplace search is safer than returning a dead product page, and still lets
+    the shopper verify the exact title and seller shown by KiasuCheck.
+    """
+    is_direct_marketplace_url = _host_matches(listing.source_url, listing.marketplace)
+    try:
+        with httpx.Client(
+            follow_redirects=True,
+            timeout=httpx.Timeout(5.0),
+            headers={"User-Agent": "Mozilla/5.0 KiasuCheck/0.6"},
+        ) as client:
+            with client.stream("GET", listing.source_url) as response:
+                resolved = str(response.url)
+                if response.status_code != 404 and _host_matches(resolved, listing.marketplace):
+                    return resolved
+    except (httpx.HTTPError, ValueError):
+        logger.info("grounded_link_resolution_failed marketplace=%s", listing.marketplace)
+        if is_direct_marketplace_url:
+            return listing.source_url
+    return _marketplace_search_url(listing.marketplace, listing.title)
 
 
 class FoundListing(BaseModel):
@@ -277,9 +329,15 @@ Numbered source catalogue:
     if listings is None:
         raise IncompleteModelResponseError("Gemini returned no structured listings.")
 
+    # Grounding citations can be temporary Google redirect URLs. Resolve the small
+    # candidate set concurrently so links remain useful without materially extending
+    # the comparison latency.
+    with ThreadPoolExecutor(max_workers=min(6, max(1, len(listings)))) as executor:
+        resolved_urls = list(executor.map(_resolve_listing_url, listings))
+
     allowed_urls = {str(source.url) for source in sources}
     candidates: list[Candidate] = []
-    for listing in listings:
+    for listing, resolved_url in zip(listings, resolved_urls):
         if not isinstance(listing, FoundListing):
             listing = FoundListing.model_validate(listing)
         marketplace = ALLOWED_MARKETPLACES.get(listing.marketplace.strip().lower())
@@ -292,7 +350,7 @@ Numbered source catalogue:
         candidates.append(
             Candidate(
                 title=listing.title,
-                url=listing.source_url,
+                url=resolved_url,
                 marketplace=marketplace,
                 seller=listing.seller,
                 visible_price=listing.visible_price,
