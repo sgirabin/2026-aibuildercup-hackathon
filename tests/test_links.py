@@ -1,4 +1,4 @@
-from app.services.gemini import _host_matches, _marketplace_search_url
+from app.services.gemini import _host_matches, _is_product_page
 
 
 def test_marketplace_host_validation() -> None:
@@ -7,15 +7,16 @@ def test_marketplace_host_validation() -> None:
     assert not _host_matches("https://example.com/lazada.sg/product", "Lazada")
 
 
-def test_lazada_fallback_is_a_search_for_the_exact_title() -> None:
-    url = _marketplace_search_url(
-        "Lazada", "New Moon Low Calorie Konjac Noodle 270g"
+def test_lazada_requires_direct_product_page() -> None:
+    assert _is_product_page(
+        "https://www.lazada.sg/products/example-product-i123456.html", "Lazada"
     )
-    assert url.startswith("https://www.lazada.sg/catalog/?q=")
-    assert "New+Moon+Low+Calorie" in url
+    assert not _is_product_page("https://www.lazada.sg/", "Lazada")
+    assert not _is_product_page(
+        "https://www.lazada.sg/shop/new-moon-official-store/", "Lazada"
+    )
 
 
-def test_shopee_fallback_is_a_search_for_the_exact_title() -> None:
-    url = _marketplace_search_url("Shopee", "Sony WH-1000XM5 Black")
-    assert url.startswith("https://shopee.sg/search?keyword=")
-    assert "WH-1000XM5" in url
+def test_shopee_requires_direct_product_page() -> None:
+    assert _is_product_page("https://shopee.sg/example-i.123.456", "Shopee")
+    assert not _is_product_page("https://shopee.sg/newmoonsg", "Shopee")

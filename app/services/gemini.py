@@ -6,7 +6,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Literal
-from urllib.parse import quote_plus, urlparse
+from urllib.parse import urlparse
 
 import httpx
 from google import genai
@@ -48,25 +48,28 @@ def _host_matches(url: str, marketplace: str) -> bool:
     return any(host == allowed or host.endswith(f".{allowed}") for allowed in MARKETPLACE_HOSTS.get(marketplace, ()))
 
 
-def _marketplace_search_url(marketplace: str, title: str) -> str:
-    query = quote_plus(title)
+def _is_product_page(url: str, marketplace: str) -> bool:
+    if not _host_matches(url, marketplace):
+        return False
+    parsed = urlparse(url)
+    path = parsed.path.lower()
     return {
-        "Shopee": f"https://shopee.sg/search?keyword={query}",
-        "Lazada": f"https://www.lazada.sg/catalog/?q={query}",
-        "TikTok Shop": f"https://www.tiktok.com/search?q={query}",
-        "Amazon SG": f"https://www.amazon.sg/s?k={query}",
-        "COURTS": f"https://www.courts.com.sg/catalogsearch/result/?q={query}",
-        "Challenger": f"https://www.challenger.sg/search?q={query}",
-    }.get(marketplace, "https://www.google.com/search?q=" + query)
+        "Shopee": "-i." in path or "/product/" in path,
+        "Lazada": "/products/" in path and ("-i" in path or "/pdp-i" in path),
+        "TikTok Shop": "/view/product/" in path or "/shop/pdp/" in path,
+        "Amazon SG": "/dp/" in path,
+        "COURTS": path not in {"", "/"},
+        "Challenger": "/products/" in path,
+    }.get(marketplace, False)
 
 
-def _resolve_listing_url(listing: "FoundListing") -> str:
+def _resolve_listing_url(listing: "FoundListing") -> str | None:
     """Turn a temporary grounding redirect into a durable marketplace URL.
 
-    A marketplace search is safer than returning a dead product page, and still lets
-    the shopper verify the exact title and seller shown by KiasuCheck.
+    Generic marketplace, shop and search pages are deliberately rejected because
+    they do not support the product-level price claim shown by KiasuCheck.
     """
-    is_direct_marketplace_url = _host_matches(listing.source_url, listing.marketplace)
+    is_direct_product_url = _is_product_page(listing.source_url, listing.marketplace)
     try:
         with httpx.Client(
             follow_redirects=True,
@@ -75,13 +78,13 @@ def _resolve_listing_url(listing: "FoundListing") -> str:
         ) as client:
             with client.stream("GET", listing.source_url) as response:
                 resolved = str(response.url)
-                if response.status_code != 404 and _host_matches(resolved, listing.marketplace):
+                if response.status_code != 404 and _is_product_page(resolved, listing.marketplace):
                     return resolved
     except (httpx.HTTPError, ValueError):
         logger.info("grounded_link_resolution_failed marketplace=%s", listing.marketplace)
-        if is_direct_marketplace_url:
+        if is_direct_product_url:
             return listing.source_url
-    return _marketplace_search_url(listing.marketplace, listing.title)
+    return None
 
 
 class FoundListing(BaseModel):
@@ -345,6 +348,7 @@ Numbered source catalogue:
             not marketplace
             or marketplace not in target_marketplaces
             or listing.source_url not in allowed_urls
+            or not resolved_url
         ):
             continue
         candidates.append(
