@@ -2,7 +2,7 @@
 
 ## Project title
 
-ShopProof — Same product. Better proof.
+KiasuCheck — Check first. Trust smarter.
 
 ## Theme
 
@@ -14,7 +14,7 @@ Southeast Asian shoppers encounter the same-looking item across multiple stores 
 
 ## Solution
 
-ShopProof is a mobile-first product verification agent with an optional Chrome extension. A shopper submits a screenshot, URL or product name. Gemini produces an exact product fingerprint, grounds discovery in public Google Search results, and explains which alternatives are genuine matches. Deterministic rules reject conflicting model numbers and important variants before price savings are shown.
+KiasuCheck is an AI trust layer whose first capability is a mobile-first shopping verification agent with an optional Chrome extension. A shopper submits a screenshot, URL or product name. Gemini produces an exact product fingerprint, grounds discovery in public Google Search results, and explains which alternatives are genuine matches. Deterministic rules reject conflicting model numbers and important variants before price savings are shown.
 
 ## Google Cloud technology
 
@@ -25,11 +25,13 @@ ShopProof is a mobile-first product verification agent with an optional Chrome e
 
 ## Agentic behaviour
 
-ShopProof observes an unstructured product, plans targeted searches from normalized identity, gathers evidence across sites, checks conflicts, ranks alternatives and returns recommendations with uncertainty. The shopper—not the system—makes the purchasing decision.
+KiasuCheck observes an unstructured product, plans targeted searches from normalized identity, gathers evidence across sites, checks conflicts, ranks alternatives and returns recommendations with uncertainty. The shopper—not the system—makes the purchasing decision.
 
 ## Innovation
 
 The prototype separates product identity confidence, seller similarity and price. It does not allow a spectacular discount to hide a variant mismatch. One backend supports both the mobile journey and an in-context browser experience.
+
+The same evidence-first interaction can later support News Check, Media Check and Scam Check. The hackathon deliverable intentionally proves the approach with Shop Check rather than overstating unfinished capabilities.
 
 ## Impact measures
 

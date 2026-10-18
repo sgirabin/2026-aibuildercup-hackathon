@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ShopProof</title>
+  <title>KiasuCheck</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header>
-    <div class="mark">S</div>
-    <div><strong>ShopProof</strong><span>Verify before you buy</span></div>
+    <div class="mark">K</div>
+    <div><strong>KiasuCheck</strong><span>Check first. Trust smarter.</span></div>
     <button id="settings-button" title="Backend settings">⚙</button>
   </header>
 
   <main>
     <section id="settings" class="settings hidden">
-      <label for="api-base">ShopProof API URL</label>
+      <label for="api-base">KiasuCheck API URL</label>
       <div class="settings-row">
         <input id="api-base" type="url" placeholder="https://shopproof-….run.app">
         <button id="save-settings">Save</button>
@@ -35,13 +35,13 @@
         <strong id="page-price">Price not detected</strong>
       </div>
       <fieldset class="objectives">
-        <legend>What should ShopProof compare?</legend>
+        <legend>What should KiasuCheck compare?</legend>
         <label><input id="objective-shop" type="checkbox" value="same_shop_product"><span><b>Same shop + product</b><small>Compare this seller's price elsewhere</small></span></label>
         <label><input id="objective-product" type="checkbox" value="same_product"><span><b>Same product, any seller</b><small>Find the cheapest exact match</small></span></label>
         <label><input id="objective-similar" type="checkbox" value="similar_product"><span><b>Similar cheaper products</b><small>Compare alternatives and differences</small></span></label>
       </fieldset>
       <div id="target-platforms" class="targets"></div>
-      <button id="compare-button" class="primary">Compare across platforms <span>→</span></button>
+      <button id="compare-button" class="primary">KiasuCheck this page <span>→</span></button>
       <label class="demo-toggle"><input id="demo-mode" type="checkbox"> Use reliable demo data</label>
     </section>
 

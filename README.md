@@ -1,14 +1,16 @@
-# ShopProof
+# KiasuCheck
 
-**Same product. Better proof.**
+**Check first. Trust smarter.**
 
-ShopProof is an AI shopping-verification prototype for the 2026 AI Builder Cup. A shopper can paste a product name or URL, upload a screenshot, or use the Chrome extension while browsing. Gemini extracts an exact product fingerprint, searches publicly indexed listings, and explains which offers are truly comparable.
+KiasuCheck is an AI trust layer for the internet. Its hackathon MVP focuses on shopping: a shopper can paste a product name or URL, upload a screenshot, or use the Chrome extension while browsing. Gemini extracts an exact product fingerprint, searches publicly indexed listings, and explains which offers are truly comparable.
 
-ShopProof does **not** claim direct access to Shopee, Lazada, or TikTok Shop APIs. Live results come from Grounding with Google Search and are labelled as public indexed snapshots.
+KiasuCheck does **not** claim direct access to Shopee, Lazada, or TikTok Shop APIs. Live results come from Grounding with Google Search and are labelled as public indexed snapshots.
 
 ## Why it matters
 
-Price comparison often fails at product identity. A cheaper result may be another generation, storage size, bundle, colour, warranty type, or accessory. ShopProof scores identity before price and exposes uncertainty instead of silently presenting a false bargain.
+Price comparison often fails at product identity. A cheaper result may be another generation, storage size, bundle, colour, warranty type, or accessory. KiasuCheck scores identity before price and exposes uncertainty instead of silently presenting a false bargain.
+
+The wider product vision applies the same evidence-first pattern to seller, scam, news, and AI-generated media checks. Those future checks are a roadmap, not capabilities claimed by this MVP.
 
 ## Demo surfaces
 
@@ -43,14 +45,14 @@ gcloud auth application-default login
 uvicorn app.main:app --reload --port 8080
 ```
 
-Open <http://localhost:8080>. Without usable Google credentials, live requests automatically switch to clearly labelled demo data. You can explicitly request the stable demonstration path from the Chrome extension.
+Open <http://localhost:8080>. Live failures remain visible unless the optional labelled demo fallback is enabled. You can explicitly request the stable demonstration path from the Chrome extension.
 
 ## Chrome extension
 
 1. Open `chrome://extensions` and enable **Developer mode**.
 2. Select **Load unpacked** and choose the `extension` directory.
 3. Open a Shopee SG, Lazada SG, or TikTok Shop product page.
-4. Click ShopProof in the Chrome toolbar.
+4. Click KiasuCheck in the Chrome toolbar.
 5. Set the API URL through the gear icon (`http://localhost:8080` locally or the Cloud Run URL).
 
 ## Tests
@@ -87,7 +89,8 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 | `GOOGLE_CLOUD_LOCATION` | `global` | Gemini API location |
 | `GOOGLE_GENAI_USE_ENTERPRISE` | `true` on Cloud Run | Use the Vertex/enterprise endpoint |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
-| `SHOPPROOF_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
+| `KIASUCHECK_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
+| `KIASUCHECK_VERSION` | `0.4.0` on deploy | Product version exposed by the health endpoint |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations

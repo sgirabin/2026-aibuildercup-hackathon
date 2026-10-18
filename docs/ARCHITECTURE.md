@@ -1,8 +1,8 @@
-# ShopProof architecture and decisions
+# KiasuCheck architecture and decisions
 
 ## Product boundary
 
-ShopProof verifies product identity before comparing an observed price. It augments the shopper's decision; it does not buy products, scrape authenticated pages, or claim marketplace partnerships.
+KiasuCheck verifies product identity before comparing an observed price. It augments the shopper's decision; it does not buy products, scrape authenticated pages, or claim marketplace partnerships.
 
 ## Request flow
 
@@ -26,7 +26,7 @@ Gemini is strong at interpreting messy screenshots and fuzzy listing language. D
 
 ## Failure design
 
-The live pipeline may fail because credentials are absent, Vertex AI is unavailable, search returns no eligible listing, or a marketplace page is not indexed. The app then uses labelled demonstration data when `SHOPPROOF_DEMO_FALLBACK=true`. It never presents demo results as live prices.
+The live pipeline may fail because credentials are absent, Vertex AI is unavailable, search returns no eligible listing, or a marketplace page is not indexed. The app then uses labelled demonstration data only when `KIASUCHECK_DEMO_FALLBACK=true`. It never presents demo results as live prices.
 
 ## Next production steps
 

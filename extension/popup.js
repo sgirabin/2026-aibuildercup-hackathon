@@ -108,7 +108,7 @@ async function runAnalysis() {
     render(response.data, apiBase);
     show('#results');
   } catch (error) {
-    $('#error').textContent = error.message || 'ShopProof could not reach the backend.';
+    $('#error').textContent = error.message || 'KiasuCheck could not reach the backend.';
     show('#error'); show('#product');
   } finally { hide('#loading'); }
 }
