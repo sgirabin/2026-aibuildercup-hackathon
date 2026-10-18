@@ -9,7 +9,7 @@ class Settings:
     project_id: str = os.getenv("GOOGLE_CLOUD_PROJECT", "gen-lang-client-0509152597")
     location: str = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
     model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-    demo_fallback: bool = os.getenv("SHOPPROOF_DEMO_FALLBACK", "true").lower() == "true"
+    demo_fallback: bool = os.getenv("SHOPPROOF_DEMO_FALLBACK", "false").lower() == "true"
     max_upload_bytes: int = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024)))
 
 

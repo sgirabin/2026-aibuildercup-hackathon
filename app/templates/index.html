@@ -35,8 +35,13 @@
           </label>
         </div>
         <div id="file-chip" class="file-chip hidden"></div>
+        <div class="intent-picker" aria-label="Search objective">
+          <label><input type="radio" name="intent" value="exact" checked><span>Same product</span></label>
+          <label><input type="radio" name="intent" value="similar"><span>Similar products</span></label>
+          <label><input type="radio" name="intent" value="seller"><span>Same seller elsewhere</span></label>
+        </div>
         <button class="primary-button" type="submit">
-          <span>Find verified alternatives</span>
+          <span>Search with Gemini</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
         </button>
         <div class="examples">

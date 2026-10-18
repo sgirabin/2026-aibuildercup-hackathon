@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.models import AnalysisResponse
+from app.models import AnalysisResponse, SearchIntent
 from app.services.demo_data import get_demo
 from app.services.gemini import extract_fingerprint, search_candidates
 from app.services.matching import rank_candidates
@@ -37,7 +37,12 @@ async def index() -> HTMLResponse:
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok", "service": "shopproof"}
+    return {
+        "status": "ok",
+        "service": "shopproof",
+        "model": settings.model,
+        "live_fallback": str(settings.demo_fallback).lower(),
+    }
 
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
@@ -45,6 +50,8 @@ async def analyze(
     query: str = Form(default=""),
     image: UploadFile | None = File(default=None),
     force_demo: bool = Form(default=False),
+    intent: SearchIntent = Form(default="exact"),
+    target_marketplace: str | None = Form(default=None),
 ) -> AnalysisResponse:
     query = query.strip()
     if not query and not image:
@@ -71,25 +78,32 @@ async def analyze(
 
     try:
         fingerprint = extract_fingerprint(query, image_bytes, mime_type)
-        candidates, sources = search_candidates(fingerprint)
-        if not candidates:
-            raise RuntimeError("No eligible indexed marketplace listings were returned.")
+        candidates, sources = search_candidates(fingerprint, intent, target_marketplace)
         return AnalysisResponse(
             fingerprint=fingerprint,
             candidates=rank_candidates(fingerprint, candidates),
             sources=sources,
             mode="live",
-            warning="Prices are publicly indexed snapshots; verify the final price, stock, shipping and voucher eligibility on the seller page.",
+            warning=(
+                "Prices are publicly indexed snapshots; verify the final price, stock, shipping "
+                "and voucher eligibility on the seller page."
+                if candidates
+                else "Gemini completed the live search, but found no supported indexed product listings."
+            ),
         )
     except Exception as exc:
         logger.exception("Live analysis failed")
         if not settings.demo_fallback:
-            raise HTTPException(503, "Live search is temporarily unavailable.") from exc
+            detail = f"Live AI search failed: {type(exc).__name__}: {str(exc)[:300]}"
+            raise HTTPException(503, detail) from exc
         fingerprint, candidates = get_demo(query)
         return AnalysisResponse(
             fingerprint=fingerprint,
             candidates=rank_candidates(fingerprint, candidates),
             mode="demo",
-            warning="Live Vertex AI search was unavailable, so ShopProof switched to clearly labelled demonstration data.",
+            warning=(
+                "Live Vertex AI search failed and ShopProof switched to demonstration data. "
+                f"Diagnostic: {type(exc).__name__}: {str(exc)[:180]}"
+            ),
         )
 

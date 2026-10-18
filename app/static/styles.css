@@ -50,6 +50,11 @@ textarea::placeholder { color: #5e728c; }
 .upload-button input { display: none; }
 .upload-button svg, .primary-button svg { width: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 .file-chip { display: inline-flex; margin-top: 10px; padding: 6px 10px; color: var(--cyan); background: rgba(70,231,214,.08); border-radius: 20px; font-size: 12px; }
+.intent-picker { display:flex;flex-wrap:wrap;gap:8px;margin-top:13px; }
+.intent-picker label { cursor:pointer; }
+.intent-picker input { position:absolute;opacity:0;pointer-events:none; }
+.intent-picker span { display:block;padding:7px 11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;font-size:11px; }
+.intent-picker input:checked + span { color:var(--lime);border-color:rgba(184,255,92,.45);background:rgba(184,255,92,.07); }
 .primary-button { width: 100%; margin-top: 14px; padding: 15px 18px; display: flex; justify-content: center; align-items: center; gap: 10px; color: #07111f; border: 0; border-radius: 13px; background: var(--lime); font-weight: 850; cursor: pointer; transition: .2s; }
 .primary-button:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(184,255,92,.17); }
 .primary-button:disabled { opacity: .55; cursor: wait; }
