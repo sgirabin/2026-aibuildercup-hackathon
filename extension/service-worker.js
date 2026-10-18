@@ -1,3 +1,7 @@
+chrome.runtime.onInstalled.addListener(details => {
+  if (details.reason === 'update') chrome.storage.local.remove('lastAnalysis');
+});
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type !== 'ANALYZE') return false;
   const form = new FormData();

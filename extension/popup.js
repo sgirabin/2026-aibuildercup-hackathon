@@ -1,4 +1,5 @@
 const DEFAULT_API = 'https://shopproof-133701402785.asia-southeast1.run.app';
+const RESULT_CACHE_VERSION = '0.6.4';
 const supportedHosts = ['shopee.sg', 'lazada.sg', 'shop.tiktok.com'];
 const allPlatforms = ['Shopee', 'Lazada', 'TikTok Shop'];
 let page = null;
@@ -80,7 +81,9 @@ async function init() {
   show('#product');
 
   const { lastAnalysis } = await chrome.storage.local.get('lastAnalysis');
-  if (lastAnalysis?.pageUrl === page.url && lastAnalysis?.data) {
+  if (lastAnalysis && lastAnalysis.cacheVersion !== RESULT_CACHE_VERSION) {
+    await chrome.storage.local.remove('lastAnalysis');
+  } else if (lastAnalysis?.pageUrl === page.url && lastAnalysis?.data) {
     render(lastAnalysis.data, apiBase);
     hide('#product');
     show('#results');
@@ -128,7 +131,12 @@ async function runAnalysis() {
     });
     if (!response.ok) throw new Error(response.error);
     await chrome.storage.local.set({
-      lastAnalysis:{ pageUrl:page.url, data:response.data, savedAt:Date.now() }
+      lastAnalysis:{
+        cacheVersion:RESULT_CACHE_VERSION,
+        pageUrl:page.url,
+        data:response.data,
+        savedAt:Date.now()
+      }
     });
     render(response.data, apiBase);
     show('#results');
