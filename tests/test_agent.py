@@ -43,7 +43,9 @@ def test_agent_refines_and_retries_when_evidence_is_empty(monkeypatch) -> None:
 
     monkeypatch.setattr("app.agent.kiasucheck_agent.search_candidates", fake_search)
 
-    result = KiasuCheckShoppingVerificationAgent().run(
+    agent = KiasuCheckShoppingVerificationAgent()
+    agent.max_iterations = 2
+    result = agent.run(
         "Sony headphones", None, None, "exact", None, []
     )
 

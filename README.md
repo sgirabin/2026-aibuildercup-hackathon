@@ -47,7 +47,7 @@ python3 -m venv .venv
 pip install -r requirements-dev.txt
 export GOOGLE_CLOUD_PROJECT=gen-lang-client-0509152597
 export GOOGLE_CLOUD_LOCATION=global
-export GOOGLE_GENAI_USE_ENTERPRISE=True
+export GOOGLE_GENAI_USE_VERTEXAI=True
 gcloud auth application-default login
 uvicorn app.main:app --reload --port 8080
 ```
@@ -94,10 +94,11 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 |---|---|---|
 | `GOOGLE_CLOUD_PROJECT` | `gen-lang-client-0509152597` | Vertex AI project |
 | `GOOGLE_CLOUD_LOCATION` | `global` | Gemini API location |
-| `GOOGLE_GENAI_USE_ENTERPRISE` | `true` on Cloud Run | Use the Vertex/enterprise endpoint |
+| `GOOGLE_GENAI_USE_VERTEXAI` | `true` on Cloud Run | Use Vertex AI authentication (the code also sets `vertexai=True`) |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
 | `KIASUCHECK_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
-| `KIASUCHECK_VERSION` | `0.5.0` on deploy | Product version exposed by the health endpoint |
+| `KIASUCHECK_MAX_AGENT_ITERATIONS` | `1` | Grounded search cycles; keep at one for interactive demo speed |
+| `KIASUCHECK_VERSION` | `0.6.0` on deploy | Product version exposed by the health endpoint |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations

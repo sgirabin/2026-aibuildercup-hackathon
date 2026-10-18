@@ -14,5 +14,5 @@ COPY app ./app
 RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 
-CMD exec gunicorn app.main:app --bind :${PORT} --workers 1 --threads 8 --timeout 120 --worker-class uvicorn.workers.UvicornWorker
+CMD exec gunicorn app.main:app --bind :${PORT} --workers 1 --threads 8 --timeout 300 --worker-class uvicorn.workers.UvicornWorker
 

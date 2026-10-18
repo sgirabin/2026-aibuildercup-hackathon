@@ -16,6 +16,7 @@ class Settings:
         "KIASUCHECK_DEMO_FALLBACK", os.getenv("SHOPPROOF_DEMO_FALLBACK", "false")
     ).lower() == "true"
     max_upload_bytes: int = int(os.getenv("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024)))
+    max_agent_iterations: int = int(os.getenv("KIASUCHECK_MAX_AGENT_ITERATIONS", "1"))
 
 
 settings = Settings()
