@@ -13,6 +13,7 @@ from app.config import settings
 from app.agent import KiasuCheckShoppingVerificationAgent
 from app.models import AgentStep, AgentTrace, AnalysisResponse, SearchIntent
 from app.services.demo_data import get_demo
+from app.services.gemini import IncompleteModelResponseError
 from app.services.matching import rank_candidates
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 verification_agent = KiasuCheckShoppingVerificationAgent()
 
-app = FastAPI(title="KiasuCheck", version="0.6.0")
+app = FastAPI(title="KiasuCheck", version="0.6.1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -123,8 +124,21 @@ async def analyze(
     except Exception as exc:
         logger.exception("Live analysis failed")
         if not settings.demo_fallback:
-            detail = f"Live AI search failed: {type(exc).__name__}: {str(exc)[:300]}"
-            raise HTTPException(503, detail) from exc
+            if isinstance(exc, IncompleteModelResponseError):
+                raise HTTPException(
+                    502,
+                    "Gemini returned an incomplete comparison. Please retry the check.",
+                ) from exc
+            diagnostic = str(exc).lower()
+            if any(word in diagnostic for word in ("timeout", "timed out", "deadline", "upstream")):
+                raise HTTPException(
+                    504,
+                    "The live marketplace search took too long. Please retry with an exact product name or model.",
+                ) from exc
+            raise HTTPException(
+                503,
+                "The live marketplace search is temporarily unavailable. Please try again.",
+            ) from exc
         fingerprint, candidates = get_demo(query)
         return AnalysisResponse(
             fingerprint=fingerprint,
