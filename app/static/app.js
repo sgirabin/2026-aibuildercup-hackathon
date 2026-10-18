@@ -40,6 +40,18 @@ document.querySelectorAll('[data-sample]').forEach(button => {
   });
 });
 
+document.querySelector('#new-comparison').addEventListener('click', () => {
+  history.replaceState(null, '', `${location.pathname}${location.search}`);
+  results.classList.add('hidden');
+  errorPanel.classList.add('hidden');
+  loading.classList.add('hidden');
+  form.reset();
+  fileChip.classList.add('hidden');
+  fileChip.textContent = '';
+  form.scrollIntoView({ behavior:'smooth', block:'center' });
+  queryInput.focus({ preventScroll:true });
+});
+
 function renderFingerprint(fp) {
   const fields = [
     ['Brand', fp.brand], ['Model', fp.model_number], ['Variant', fp.variant],
