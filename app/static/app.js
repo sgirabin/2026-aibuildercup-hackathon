@@ -54,6 +54,7 @@ function renderOffer(item) {
       <h3>${escapeHtml(item.title)}</h3>
       <div class="meta">
         <span class="verdict ${mismatch ? 'mismatch' : ''}">${escapeHtml(item.verdict)}</span>
+        <span class="confidence ${String(item.evidence_confidence_level).toLowerCase()}">${item.evidence_confidence_score}% evidence · ${escapeHtml(item.evidence_confidence_level)}</span>
         ${seller}${sellerScore}
       </div>
     </div>
@@ -71,6 +72,7 @@ function render(data) {
   document.querySelector('#original-price').innerHTML = fp.visible_price == null ? '' :
     `Observed price<strong>${money(fp.visible_price, fp.currency)}</strong>`;
   renderFingerprint(fp);
+  renderAgent(data.agent);
   document.querySelector('#offer-count').textContent = `${data.candidates.length} results checked`;
   document.querySelector('#offers').innerHTML = data.candidates.map(renderOffer).join('');
 
@@ -82,6 +84,16 @@ function render(data) {
   sourcesWrap.classList.toggle('hidden', !data.sources?.length);
   document.querySelector('#sources').innerHTML = (data.sources || []).map(source =>
     `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.title)}</a></li>`
+  ).join('');
+}
+
+function renderAgent(agent) {
+  if (!agent) return;
+  document.querySelector('#agent-status').textContent = `${agent.iterations} investigation${agent.iterations === 1 ? '' : 's'} · ${agent.tools_used.length} tools`;
+  document.querySelector('#agent-confidence').textContent = `${agent.evidence_confidence_score}% ${agent.evidence_confidence_level} evidence confidence`;
+  document.querySelector('#agent-confidence').className = String(agent.evidence_confidence_level).toLowerCase();
+  document.querySelector('#agent-steps').innerHTML = agent.steps.map(step =>
+    `<li><span>${escapeHtml(step.stage)}</span><p>${escapeHtml(step.summary)}</p>${step.tool ? `<code>${escapeHtml(step.tool)}</code>` : ''}</li>`
   ).join('');
 }
 

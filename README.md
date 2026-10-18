@@ -6,6 +6,12 @@ KiasuCheck is an AI trust layer for the internet. Its hackathon MVP focuses on s
 
 KiasuCheck does **not** claim direct access to Shopee, Lazada, or TikTok Shop APIs. Live results come from Grounding with Google Search and are labelled as public indexed snapshots.
 
+## AI agent
+
+The **KiasuCheck Shopping Verification Agent** observes an unstructured listing, creates a cross-platform investigation plan, uses Google Search grounding as a tool, evaluates whether the evidence is sufficient, and refines its search once when necessary. Deterministic tools then verify product identity and compare only supported prices. The API returns the agent's tool usage, investigation count, evidence confidence, and decision trace.
+
+The agent is deliberately human-in-the-loop: it cannot purchase a product or claim that two storefronts have the same legal owner. It presents evidence and uncertainty for the shopper's decision.
+
 ## Why it matters
 
 Price comparison often fails at product identity. A cheaper result may be another generation, storage size, bundle, colour, warranty type, or accessory. KiasuCheck scores identity before price and exposes uncertainty instead of silently presenting a false bargain.
@@ -22,12 +28,13 @@ The wider product vision applies the same evidence-first pattern to seller, scam
 
 ```mermaid
 flowchart TD
-    A["Mobile web or Chrome extension"] --> B["FastAPI on Cloud Run"]
-    B --> C["Gemini product fingerprint"]
-    B --> D["Google Search grounding"]
-    C --> E["Deterministic match scorer"]
-    D --> E
-    E --> F["Evidence-backed alternatives"]
+    A["Mobile web or Chrome extension"] --> B["Verification agent on Cloud Run"]
+    B --> C["Observe and plan with Gemini"]
+    C --> D["Search tool: Google grounding"]
+    D --> E{"Evidence sufficient?"}
+    E -->|No| C
+    E -->|Yes| F["Identity and confidence tools"]
+    F --> G["Evidence-backed recommendation"]
 ```
 
 The deterministic scorer gives model-number and variant conflicts precedence over a low price. Product and seller similarity remain separate signals.
@@ -90,7 +97,7 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 | `GOOGLE_GENAI_USE_ENTERPRISE` | `true` on Cloud Run | Use the Vertex/enterprise endpoint |
 | `GEMINI_MODEL` | `gemini-3.5-flash` | Grounding-capable model |
 | `KIASUCHECK_DEMO_FALLBACK` | `false` | Optional labelled demo fallback; disabled so live failures remain visible |
-| `KIASUCHECK_VERSION` | `0.4.0` on deploy | Product version exposed by the health endpoint |
+| `KIASUCHECK_VERSION` | `0.5.0` on deploy | Product version exposed by the health endpoint |
 | `MAX_UPLOAD_BYTES` | `5242880` | Screenshot size limit |
 
 ## Honest limitations
@@ -101,5 +108,5 @@ The Cloud Run runtime service account needs `roles/aiplatform.user`. The deployi
 - Some marketplaces may return sparse evidence or redirect URLs.
 - The prototype is optimized for branded products with model numbers; fashion and unbranded goods are harder.
 
-See [the architecture notes](docs/ARCHITECTURE.md), [three-minute demo script](docs/DEMO_SCRIPT.md), and [submission copy](docs/SUBMISSION.md).
+See [the agent specification](docs/AGENT.md), [architecture notes](docs/ARCHITECTURE.md), [three-minute demo script](docs/DEMO_SCRIPT.md), and [submission copy](docs/SUBMISSION.md).
 

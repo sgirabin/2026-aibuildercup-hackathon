@@ -6,12 +6,12 @@ KiasuCheck verifies product identity before comparing an observed price. It augm
 
 ## Request flow
 
-1. The web client accepts text, a URL, or a screenshot. The extension extracts visible metadata from the active product page after the user clicks it.
-2. Gemini normalizes the input into a fingerprint: brand, model, variant, colour, storage, bundle, seller, and observed price.
-3. A second Gemini request uses Grounding with Google Search to discover publicly indexed Singapore listings.
-4. The server accepts only recognized retailer domains and parses structured candidate facts.
-5. Deterministic code scores every candidate. An exact model contributes most of the score; conflicting models or important variants produce a mismatch verdict.
-6. The client shows product and seller similarity separately, source links, visible price, savings, and a freshness warning.
+1. The agent observes text, a URL, page metadata, or a screenshot and creates a structured product fingerprint.
+2. The agent plans objectives and target marketplaces from the shopper's request and current platform.
+3. It uses Grounding with Google Search as an investigation tool and retains only cited marketplace evidence.
+4. The agent evaluates evidence sufficiency. When no supported candidate exists, it refines exact search terms and performs one final investigation.
+5. Deterministic tools score identity and evidence confidence. Conflicting models or important variants produce a mismatch verdict regardless of price.
+6. The client shows the agent trace, product match, evidence confidence, seller similarity, sources, savings, and freshness warning.
 
 ## Why AI plus deterministic logic
 

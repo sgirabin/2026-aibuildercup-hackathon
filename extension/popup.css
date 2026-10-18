@@ -38,6 +38,12 @@ h1 { display:-webkit-box;margin:7px 0 14px;overflow:hidden;font-size:18px;line-h
 .loading span { color:var(--muted);font-size:10px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .mode { margin-bottom:12px;padding:8px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:10px; }
+.agent-summary { margin-bottom:12px;padding:10px;background:rgba(70,231,214,.06);border:1px solid rgba(70,231,214,.25);border-radius:9px; }
+.agent-summary div { display:flex;justify-content:space-between;gap:12px; }
+.agent-summary b { color:var(--cyan);font-size:10px; }
+.agent-summary strong,.agent-summary small { font-size:9px; }
+.agent-summary small { display:block;margin-top:4px;color:var(--muted); }
+.high { color:var(--lime)!important; }.medium { color:#ffb55d!important; }.low { color:var(--red)!important; }
 .fingerprint { margin-bottom:12px; }
 .fingerprint strong { display:block;font-size:16px; }
 .fingerprint span { color:var(--muted);font-size:10px; }

@@ -75,6 +75,20 @@ textarea::placeholder { color: #5e728c; }
 .results { padding-bottom: 80px; }
 .mode-banner { margin-bottom: 28px; padding: 12px 14px; color: #d8e5f5; background: rgba(255,181,93,.1); border: 1px solid rgba(255,181,93,.24); border-radius: 10px; font-size: 12px; line-height: 1.5; }
 .mode-banner.live { background: rgba(70,231,214,.08); border-color: rgba(70,231,214,.2); }
+.agent-trace { margin: 0 0 32px; padding: 0 18px; background: rgba(14,29,48,.92); border: 1px solid rgba(70,231,214,.28); border-radius: 16px; }
+.agent-trace summary { display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;cursor:pointer; }
+.agent-trace summary span { display:grid;gap:3px; }
+.agent-trace summary b { color:var(--cyan);font-size:13px; }
+.agent-trace summary small { color:var(--muted);font-size:10px; }
+.agent-trace summary > strong { font-size:11px; }
+.agent-trace .high,.confidence.high { color:var(--lime); }
+.agent-trace .medium,.confidence.medium { color:var(--orange); }
+.agent-trace .low,.confidence.low { color:var(--red); }
+.agent-trace ol { display:grid;gap:0;margin:0 0 18px;padding:0;list-style:none;counter-reset:agent-step; }
+.agent-trace li { counter-increment:agent-step;display:grid;grid-template-columns:82px 1fr auto;gap:12px;align-items:start;padding:10px 0;border-top:1px solid var(--line); }
+.agent-trace li span { color:var(--cyan);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase; }
+.agent-trace li p { margin:0;color:#c6d4e5;font-size:11px; }
+.agent-trace code { color:var(--muted);font-size:9px; }
 .result-heading, .offers-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .result-heading h2, .offers-heading h2 { margin: 8px 0 0; font-size: clamp(27px, 4vw, 44px); letter-spacing: -.04em; }
 .original-price { color: var(--muted); text-align: right; font-size: 12px; }
@@ -95,6 +109,7 @@ textarea::placeholder { color: #5e728c; }
 .offer-info h3 { margin: 4px 0 7px; font-size: 17px; }
 .marketplace { color: var(--cyan); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 11px; }
+.confidence { font-weight:700; }
 .verdict { color: var(--lime); }
 .verdict.mismatch { color: var(--red); }
 .offer-price { text-align: right; }
@@ -117,6 +132,9 @@ footer p { max-width: 650px; margin: 0; }
   .search-card { padding: 15px; border-radius: 17px; }
   .trust-row { grid-template-columns: 1fr; gap: 10px; }
   .result-heading, .offers-heading { align-items: flex-start; flex-direction: column; }
+  .agent-trace summary { align-items:flex-start;flex-direction:column; }
+  .agent-trace li { grid-template-columns:70px 1fr; }
+  .agent-trace code { grid-column:2; }
   .original-price { text-align: left; }
   .offer-card { grid-template-columns: 66px 1fr; gap: 13px; padding: 15px; }
   .score { width: 62px; height: 62px; }

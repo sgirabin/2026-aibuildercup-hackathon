@@ -9,9 +9,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.models import AnalysisResponse, SearchIntent
+from app.agent import KiasuCheckShoppingVerificationAgent
+from app.models import AgentStep, AgentTrace, AnalysisResponse, SearchIntent
 from app.services.demo_data import get_demo
-from app.services.gemini import extract_fingerprint, search_candidates
 from app.services.matching import rank_candidates
 
 logging.basicConfig(level=logging.INFO)
@@ -19,8 +19,9 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+verification_agent = KiasuCheckShoppingVerificationAgent()
 
-app = FastAPI(title="KiasuCheck", version="0.4.0")
+app = FastAPI(title="KiasuCheck", version="0.5.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -73,30 +74,37 @@ async def analyze(
 
     if force_demo:
         fingerprint, candidates = get_demo(query)
+        ranked = rank_candidates(fingerprint, candidates)
         return AnalysisResponse(
             fingerprint=fingerprint,
-            candidates=rank_candidates(fingerprint, candidates),
+            candidates=ranked,
             mode="demo",
             warning="Demo evidence is illustrative and not a live marketplace quote.",
+            agent=_demo_trace(ranked),
         )
 
     try:
-        fingerprint = extract_fingerprint(query, image_bytes, mime_type)
         selected_objectives = [item.strip() for item in objectives.split(",") if item.strip()]
-        candidates, sources = search_candidates(
-            fingerprint, intent, target_marketplace, selected_objectives
+        result = verification_agent.run(
+            query,
+            image_bytes,
+            mime_type,
+            intent,
+            target_marketplace,
+            selected_objectives,
         )
         return AnalysisResponse(
-            fingerprint=fingerprint,
-            candidates=rank_candidates(fingerprint, candidates),
-            sources=sources,
+            fingerprint=result.fingerprint,
+            candidates=result.candidates,
+            sources=result.sources,
             mode="live",
             warning=(
                 "Prices are publicly indexed snapshots; verify the final price, stock, shipping "
                 "and voucher eligibility on the seller page."
-                if candidates
+                if result.candidates
                 else "Gemini completed the live search, but found no supported indexed product listings."
             ),
+            agent=result.trace,
         )
     except Exception as exc:
         logger.exception("Live analysis failed")
@@ -112,5 +120,26 @@ async def analyze(
                 "Live Vertex AI search failed and KiasuCheck switched to demonstration data. "
                 f"Diagnostic: {type(exc).__name__}: {str(exc)[:180]}"
             ),
+            agent=_demo_trace(rank_candidates(fingerprint, candidates)),
         )
+
+
+def _demo_trace(candidates):
+    score = round(
+        sum(candidate.evidence_confidence_score for candidate in candidates[:3])
+        / max(1, len(candidates[:3]))
+    )
+    level = "High" if score >= 80 else "Medium" if score >= 60 else "Low"
+    return AgentTrace(
+        status="completed",
+        iterations=1,
+        tools_used=["demo_fixture", "verify_product_identity", "compare_supported_prices"],
+        evidence_confidence_score=score,
+        evidence_confidence_level=level,
+        steps=[
+            AgentStep(stage="observe", summary="Loaded the labelled demonstration product."),
+            AgentStep(stage="verify", tool="verify_product_identity", summary="Applied the same deterministic identity checks used for live results."),
+            AgentStep(stage="recommend", tool="compare_supported_prices", summary="Ranked demonstration offers by identity before price."),
+        ],
+    )
 
