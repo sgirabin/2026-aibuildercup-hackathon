@@ -3,6 +3,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   const form = new FormData();
   form.append('query', message.query);
   form.append('force_demo', String(Boolean(message.forceDemo)));
+  form.append('intent', message.intent || 'exact');
+  if (message.targetMarketplace) form.append('target_marketplace', message.targetMarketplace);
   fetch(`${message.apiBase}/api/analyze`, { method:'POST', body:form })
     .then(async response => {
       const body = await response.json();

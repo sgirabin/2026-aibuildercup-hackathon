@@ -54,3 +54,6 @@ class AnalysisResponse(BaseModel):
     mode: Literal["live", "demo"]
     warning: str | None = None
 
+
+SearchIntent = Literal["exact", "similar", "seller"]
+

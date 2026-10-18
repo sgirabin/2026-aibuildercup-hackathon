@@ -8,24 +8,40 @@ from urllib.parse import urlparse
 
 from google import genai
 from google.genai import types
+from pydantic import BaseModel, Field
 
 from app.config import settings
-from app.models import Candidate, ProductFingerprint, Source
+from app.models import Candidate, ProductFingerprint, SearchIntent, Source
+from app.services.product_input import parse_product_input
 
 logger = logging.getLogger(__name__)
 
 ALLOWED_MARKETPLACES = {
-    "shopee.sg": "Shopee",
-    "lazada.sg": "Lazada",
-    "www.lazada.sg": "Lazada",
-    "shop.tiktok.com": "TikTok Shop",
-    "amazon.sg": "Amazon SG",
-    "www.amazon.sg": "Amazon SG",
-    "courts.com.sg": "COURTS",
-    "www.courts.com.sg": "COURTS",
-    "challenger.sg": "Challenger",
-    "www.challenger.sg": "Challenger",
+    "shopee": "Shopee",
+    "lazada": "Lazada",
+    "tiktok shop": "TikTok Shop",
+    "amazon sg": "Amazon SG",
+    "amazon": "Amazon SG",
+    "courts": "COURTS",
+    "challenger": "Challenger",
 }
+
+
+class FoundListing(BaseModel):
+    title: str
+    source_url: str
+    marketplace: str
+    seller: str | None = None
+    visible_price: float | None = None
+    currency: str = "SGD"
+    promotion: str | None = None
+    brand: str | None = None
+    model_number: str | None = None
+    variant: str | None = None
+    colour: str | None = None
+    storage: str | None = None
+    bundle: str | None = None
+    evidence: list[str] = Field(default_factory=list)
 
 
 def _json_payload(text: str) -> Any:
@@ -45,17 +61,16 @@ def _client() -> genai.Client:
 def extract_fingerprint(
     query: str, image_bytes: bytes | None = None, mime_type: str | None = None
 ) -> ProductFingerprint:
+    product_input = parse_product_input(query)
     prompt = f"""
 You are ShopProof, a precise product identity analyst for Singapore shoppers.
-Extract a normalized product fingerprint from the user's text/URL and optional screenshot.
-Never invent a model number, seller, variant, promotion, or price. Use null when not visible.
-Return JSON only with these keys:
-product_name, brand, model_number, variant, colour, storage, bundle,
-source_marketplace, source_seller, visible_price, currency, search_terms, ambiguities.
-visible_price must be numeric without currency symbols. currency defaults to SGD.
-search_terms should contain 1-3 highly specific Singapore web searches, prioritizing exact model numbers.
+Extract a normalized product fingerprint from the supplied text, marketplace URL facts,
+page metadata, and optional screenshot. A marketplace URL might not be fetchable, so use
+its decoded slug title and IDs as evidence. Never invent a model number, seller, variant,
+promotion, or price. Use null when a fact is not visible. Currency defaults to SGD.
+Create 1-3 highly specific Singapore web search terms, prioritizing exact model numbers.
 
-User input: {query or 'Use the attached screenshot.'}
+{product_input.prompt_context()}
 """
     contents: list[Any] = [prompt]
     if image_bytes and mime_type:
@@ -66,10 +81,23 @@ User input: {query or 'Use the attached screenshot.'}
         contents=contents,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
+            response_schema=ProductFingerprint,
             temperature=0.1,
         ),
     )
-    return ProductFingerprint.model_validate(_json_payload(response.text))
+    fingerprint = response.parsed
+    if not isinstance(fingerprint, ProductFingerprint):
+        fingerprint = ProductFingerprint.model_validate(_json_payload(response.text))
+
+    if product_input.marketplace and not fingerprint.source_marketplace:
+        fingerprint.source_marketplace = product_input.marketplace
+    if product_input.slug_title and (
+        not fingerprint.product_name or fingerprint.product_name.lower().startswith("unknown")
+    ):
+        fingerprint.product_name = product_input.slug_title
+    if product_input.slug_title and not fingerprint.search_terms:
+        fingerprint.search_terms = [f"{product_input.slug_title} Singapore"]
+    return fingerprint
 
 
 def _extract_sources(response: Any) -> list[Source]:
@@ -80,26 +108,62 @@ def _extract_sources(response: Any) -> list[Source]:
             web = getattr(chunk, "web", None)
             uri = getattr(web, "uri", None)
             if uri and uri.startswith("http"):
-                found[uri] = Source(title=getattr(web, "title", None) or "Web source", url=uri)
+                found[uri] = Source(
+                    title=getattr(web, "title", None) or "Grounded web source", url=uri
+                )
+    for uri in re.findall(r"https?://[^\s)>\]}]+", response.text or ""):
+        clean = uri.rstrip(".,;")
+        found.setdefault(clean, Source(title=urlparse(clean).netloc, url=clean))
     return list(found.values())
 
 
-def search_candidates(fingerprint: ProductFingerprint) -> tuple[list[Candidate], list[Source]]:
+def _search_instruction(
+    fingerprint: ProductFingerprint,
+    intent: SearchIntent,
+    target_marketplace: str | None,
+) -> str:
+    target = f" Focus on {target_marketplace}." if target_marketplace else ""
+    if intent == "seller":
+        objective = (
+            "Find evidence that the source seller operates on other marketplaces. Search the seller "
+            "name together with the product identity and report only plausible storefront matches."
+        )
+    elif intent == "similar":
+        objective = (
+            "Find genuinely comparable alternatives with similar function and specifications, plus "
+            "exact matches when available. Clearly identify every important difference."
+        )
+    else:
+        objective = (
+            "Find the same exact product across other Singapore marketplace or retailer listings. "
+            "Treat a different model, generation, storage size, bundle, or accessory as a mismatch."
+        )
+    return f"{objective}{target}"
+
+
+def search_candidates(
+    fingerprint: ProductFingerprint,
+    intent: SearchIntent = "exact",
+    target_marketplace: str | None = None,
+) -> tuple[list[Candidate], list[Source]]:
     identity = fingerprint.model_dump_json(exclude_none=True)
+    search_terms = "; ".join(fingerprint.search_terms)
+    instruction = _search_instruction(fingerprint, intent, target_marketplace)
     prompt = f"""
-You are a shopping verification agent. Search the public web for Singapore listings matching this product:
+You are ShopProof's web research agent. {instruction}
+
+Product fingerprint:
 {identity}
 
-Search Shopee Singapore, Lazada Singapore, TikTok Shop, and major Singapore retailers.
-Return up to 8 useful listings from at least 2 platforms when available.
-Do not treat accessories, refurbished goods, different model numbers, storage sizes, bundles, or generations as exact matches.
-Only report prices and promotions visible in the search evidence. Never invent missing values.
-Return JSON only as an array of objects with keys:
-title, url, marketplace, seller, visible_price, currency, promotion, brand,
-model_number, variant, colour, storage, bundle, evidence.
-Each evidence value must be a short array of observed matching or conflicting facts.
+Preferred search terms: {search_terms}
+
+Use Google Search and produce a concise evidence report of up to 8 useful Singapore offers.
+For every offer, state the product title, marketplace, seller if visible, displayed SGD price,
+promotion if visible, model or variant evidence, and the cited product-page source. Do not invent
+prices, promotions, sellers, URLs, or unavailable product attributes. If the web evidence is sparse,
+say so plainly. Prefer actual product pages over marketplace home pages.
 """
-    response = _client().models.generate_content(
+    grounded = _client().models.generate_content(
         model=settings.model,
         contents=prompt,
         config=types.GenerateContentConfig(
@@ -107,17 +171,72 @@ Each evidence value must be a short array of observed matching or conflicting fa
             temperature=1.0,
         ),
     )
-    sources = _extract_sources(response)
-    raw = _json_payload(response.text)
-    candidates: list[Candidate] = []
-    for item in raw if isinstance(raw, list) else raw.get("candidates", []):
-        try:
-            candidate = Candidate.model_validate(item)
-            host = urlparse(candidate.url).netloc.lower()
-            if host in ALLOWED_MARKETPLACES:
-                candidate.marketplace = ALLOWED_MARKETPLACES[host]
-                candidates.append(candidate)
-        except Exception as exc:  # individual noisy search results should not fail the run
-            logger.info("Skipping malformed grounded result: %s", exc)
-    return candidates, sources
+    sources = _extract_sources(grounded)
+    if not sources:
+        return [], []
 
+    source_catalogue = "\n".join(
+        f"[{index}] {source.title} | {source.url}"
+        for index, source in enumerate(sources, start=1)
+    )
+    structure_prompt = f"""
+Convert the grounded shopping report below into structured listings.
+
+Rules:
+- source_url must be copied exactly from the numbered source catalogue.
+- Include only offers actually supported by the report and catalogue.
+- Never fabricate a direct marketplace URL, price, seller, promotion, or attribute.
+- Normalize marketplace to Shopee, Lazada, TikTok Shop, Amazon SG, COURTS, or Challenger.
+- Use null for facts not present in evidence.
+- evidence must contain short observed facts, including conflicts or uncertainty.
+- visible_price must be a number without currency symbols.
+
+Product to compare:
+{identity}
+
+Grounded report:
+{grounded.text}
+
+Numbered source catalogue:
+{source_catalogue}
+"""
+    structured = _client().models.generate_content(
+        model=settings.model,
+        contents=structure_prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=list[FoundListing],
+            temperature=0.0,
+        ),
+    )
+    listings = structured.parsed
+    if not isinstance(listings, list):
+        listings = [FoundListing.model_validate(item) for item in _json_payload(structured.text)]
+
+    allowed_urls = {str(source.url) for source in sources}
+    candidates: list[Candidate] = []
+    for listing in listings:
+        if not isinstance(listing, FoundListing):
+            listing = FoundListing.model_validate(listing)
+        marketplace = ALLOWED_MARKETPLACES.get(listing.marketplace.strip().lower())
+        if not marketplace or listing.source_url not in allowed_urls:
+            continue
+        candidates.append(
+            Candidate(
+                title=listing.title,
+                url=listing.source_url,
+                marketplace=marketplace,
+                seller=listing.seller,
+                visible_price=listing.visible_price,
+                currency=listing.currency,
+                promotion=listing.promotion,
+                brand=listing.brand,
+                model_number=listing.model_number,
+                variant=listing.variant,
+                colour=listing.colour,
+                storage=listing.storage,
+                bundle=listing.bundle,
+                evidence=listing.evidence,
+            )
+        )
+    return candidates, sources

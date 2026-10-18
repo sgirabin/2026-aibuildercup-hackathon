@@ -23,6 +23,10 @@ h1 { display:-webkit-box;margin:7px 0 14px;overflow:hidden;font-size:18px;line-h
 .primary,.secondary { width:100%;margin-top:12px;padding:11px 12px;border:0;border-radius:9px;font-weight:800;cursor:pointer; }
 .primary { display:flex;justify-content:space-between;color:var(--bg);background:var(--lime); }
 .secondary { color:var(--ink);background:transparent;border:1px solid var(--line); }
+.actions { display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px; }
+.actions .primary { grid-column:1/-1;margin-top:0; }
+.action-button:not(.primary) { padding:9px 8px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:10px;font-weight:700;cursor:pointer; }
+.action-button.lazada { color:#ff9d35;border-color:rgba(255,157,53,.38); }
 .demo-toggle { display:flex;align-items:center;gap:6px;margin-top:10px;color:var(--muted);font-size:10px; }
 .loading { display:flex;align-items:center;gap:14px;padding:22px 4px; }
 .loading i { width:31px;height:31px;border:3px solid var(--line);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite; }

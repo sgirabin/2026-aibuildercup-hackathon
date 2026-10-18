@@ -14,7 +14,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --project "${PROJECT_ID}" \
   --region "${DEPLOY_REGION}" \
   --allow-unauthenticated \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=global,GOOGLE_GENAI_USE_ENTERPRISE=true,GEMINI_MODEL=${MODEL_NAME},SHOPPROOF_DEMO_FALLBACK=true" \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=global,GOOGLE_GENAI_USE_ENTERPRISE=true,GEMINI_MODEL=${MODEL_NAME},SHOPPROOF_DEMO_FALLBACK=false" \
   --memory 512Mi \
   --cpu 1 \
   --timeout 120 \
